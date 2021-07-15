@@ -123,6 +123,123 @@ engmsc-app/fast:
 	$(MAKE) -f app/CMakeFiles/engmsc-app.dir/build.make app/CMakeFiles/engmsc-app.dir/build
 .PHONY : engmsc-app/fast
 
+#=============================================================================
+# Target rules for targets named example_icons
+
+# Build rule for target.
+example_icons: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example_icons
+.PHONY : example_icons
+
+# fast build rule for target.
+example_icons/fast:
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example_icons.dir/build.make app/dep/nanogui/CMakeFiles/example_icons.dir/build
+.PHONY : example_icons/fast
+
+#=============================================================================
+# Target rules for targets named example4
+
+# Build rule for target.
+example4: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example4
+.PHONY : example4
+
+# fast build rule for target.
+example4/fast:
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example4.dir/build.make app/dep/nanogui/CMakeFiles/example4.dir/build
+.PHONY : example4/fast
+
+#=============================================================================
+# Target rules for targets named example3
+
+# Build rule for target.
+example3: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example3
+.PHONY : example3
+
+# fast build rule for target.
+example3/fast:
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example3.dir/build.make app/dep/nanogui/CMakeFiles/example3.dir/build
+.PHONY : example3/fast
+
+#=============================================================================
+# Target rules for targets named example2
+
+# Build rule for target.
+example2: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example2
+.PHONY : example2
+
+# fast build rule for target.
+example2/fast:
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example2.dir/build.make app/dep/nanogui/CMakeFiles/example2.dir/build
+.PHONY : example2/fast
+
+#=============================================================================
+# Target rules for targets named example1
+
+# Build rule for target.
+example1: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 example1
+.PHONY : example1
+
+# fast build rule for target.
+example1/fast:
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example1.dir/build.make app/dep/nanogui/CMakeFiles/example1.dir/build
+.PHONY : example1/fast
+
+#=============================================================================
+# Target rules for targets named nanogui
+
+# Build rule for target.
+nanogui: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 nanogui
+.PHONY : nanogui
+
+# fast build rule for target.
+nanogui/fast:
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/nanogui.dir/build.make app/dep/nanogui/CMakeFiles/nanogui.dir/build
+.PHONY : nanogui/fast
+
+#=============================================================================
+# Target rules for targets named glfw
+
+# Build rule for target.
+glfw: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 glfw
+.PHONY : glfw
+
+# fast build rule for target.
+glfw/fast:
+	$(MAKE) -f app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw.dir/build.make app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw.dir/build
+.PHONY : glfw/fast
+
+#=============================================================================
+# Target rules for targets named glfw_objects
+
+# Build rule for target.
+glfw_objects: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 glfw_objects
+.PHONY : glfw_objects
+
+# fast build rule for target.
+glfw_objects/fast:
+	$(MAKE) -f app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/build.make app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/build
+.PHONY : glfw_objects/fast
+
+#=============================================================================
+# Target rules for targets named glad
+
+# Build rule for target.
+glad: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 glad
+.PHONY : glad
+
+# fast build rule for target.
+glad/fast:
+	$(MAKE) -f app/dep/glad/CMakeFiles/glad.dir/build.make app/dep/glad/CMakeFiles/glad.dir/build
+.PHONY : glad/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -132,6 +249,15 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... engmsc-app"
+	@echo "... example_icons"
+	@echo "... example4"
+	@echo "... example3"
+	@echo "... example2"
+	@echo "... example1"
+	@echo "... nanogui"
+	@echo "... glfw"
+	@echo "... glfw_objects"
+	@echo "... glad"
 .PHONY : help
 
 

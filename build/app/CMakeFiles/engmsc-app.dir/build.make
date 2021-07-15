@@ -80,6 +80,8 @@ engmsc__app_EXTERNAL_OBJECTS =
 app/engmsc-app: app/CMakeFiles/engmsc-app.dir/src/main.cpp.o
 app/engmsc-app: app/CMakeFiles/engmsc-app.dir/build.make
 app/engmsc-app: /usr/lib/x86_64-linux-gnu/libsfml-audio.so.2.5.1
+app/engmsc-app: app/dep/nanogui/libnanogui.so
+app/engmsc-app: app/dep/glad/libglad.a
 app/engmsc-app: /usr/lib/x86_64-linux-gnu/libsfml-system.so.2.5.1
 app/engmsc-app: app/CMakeFiles/engmsc-app.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/fern/Desktop/engmsc/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable engmsc-app"

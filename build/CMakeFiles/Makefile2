@@ -72,24 +72,115 @@ clean: app/clean
 
 # Recursive "all" directory target.
 app/all: app/CMakeFiles/engmsc-app.dir/all
+app/all: app/dep/nanogui/all
+app/all: app/dep/glad/all
 
 .PHONY : app/all
 
 # Recursive "preinstall" directory target.
-app/preinstall:
+app/preinstall: app/dep/nanogui/preinstall
+app/preinstall: app/dep/glad/preinstall
 
 .PHONY : app/preinstall
 
 # Recursive "clean" directory target.
 app/clean: app/CMakeFiles/engmsc-app.dir/clean
+app/clean: app/dep/nanogui/clean
+app/clean: app/dep/glad/clean
 
 .PHONY : app/clean
+
+#=============================================================================
+# Directory level rules for directory app/dep/glad
+
+# Recursive "all" directory target.
+app/dep/glad/all: app/dep/glad/CMakeFiles/glad.dir/all
+
+.PHONY : app/dep/glad/all
+
+# Recursive "preinstall" directory target.
+app/dep/glad/preinstall:
+
+.PHONY : app/dep/glad/preinstall
+
+# Recursive "clean" directory target.
+app/dep/glad/clean: app/dep/glad/CMakeFiles/glad.dir/clean
+
+.PHONY : app/dep/glad/clean
+
+#=============================================================================
+# Directory level rules for directory app/dep/nanogui
+
+# Recursive "all" directory target.
+app/dep/nanogui/all: app/dep/nanogui/CMakeFiles/example_icons.dir/all
+app/dep/nanogui/all: app/dep/nanogui/CMakeFiles/example4.dir/all
+app/dep/nanogui/all: app/dep/nanogui/CMakeFiles/example3.dir/all
+app/dep/nanogui/all: app/dep/nanogui/CMakeFiles/example2.dir/all
+app/dep/nanogui/all: app/dep/nanogui/CMakeFiles/example1.dir/all
+app/dep/nanogui/all: app/dep/nanogui/CMakeFiles/nanogui.dir/all
+app/dep/nanogui/all: app/dep/nanogui/ext/glfw/all
+
+.PHONY : app/dep/nanogui/all
+
+# Recursive "preinstall" directory target.
+app/dep/nanogui/preinstall: app/dep/nanogui/ext/glfw/preinstall
+
+.PHONY : app/dep/nanogui/preinstall
+
+# Recursive "clean" directory target.
+app/dep/nanogui/clean: app/dep/nanogui/CMakeFiles/example_icons.dir/clean
+app/dep/nanogui/clean: app/dep/nanogui/CMakeFiles/example4.dir/clean
+app/dep/nanogui/clean: app/dep/nanogui/CMakeFiles/example3.dir/clean
+app/dep/nanogui/clean: app/dep/nanogui/CMakeFiles/example2.dir/clean
+app/dep/nanogui/clean: app/dep/nanogui/CMakeFiles/example1.dir/clean
+app/dep/nanogui/clean: app/dep/nanogui/CMakeFiles/nanogui.dir/clean
+app/dep/nanogui/clean: app/dep/nanogui/ext/glfw/clean
+
+.PHONY : app/dep/nanogui/clean
+
+#=============================================================================
+# Directory level rules for directory app/dep/nanogui/ext/glfw
+
+# Recursive "all" directory target.
+app/dep/nanogui/ext/glfw/all: app/dep/nanogui/ext/glfw/src/all
+
+.PHONY : app/dep/nanogui/ext/glfw/all
+
+# Recursive "preinstall" directory target.
+app/dep/nanogui/ext/glfw/preinstall: app/dep/nanogui/ext/glfw/src/preinstall
+
+.PHONY : app/dep/nanogui/ext/glfw/preinstall
+
+# Recursive "clean" directory target.
+app/dep/nanogui/ext/glfw/clean: app/dep/nanogui/ext/glfw/src/clean
+
+.PHONY : app/dep/nanogui/ext/glfw/clean
+
+#=============================================================================
+# Directory level rules for directory app/dep/nanogui/ext/glfw/src
+
+# Recursive "all" directory target.
+app/dep/nanogui/ext/glfw/src/all: app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/all
+
+.PHONY : app/dep/nanogui/ext/glfw/src/all
+
+# Recursive "preinstall" directory target.
+app/dep/nanogui/ext/glfw/src/preinstall:
+
+.PHONY : app/dep/nanogui/ext/glfw/src/preinstall
+
+# Recursive "clean" directory target.
+app/dep/nanogui/ext/glfw/src/clean: app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw.dir/clean
+app/dep/nanogui/ext/glfw/src/clean: app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/clean
+
+.PHONY : app/dep/nanogui/ext/glfw/src/clean
 
 #=============================================================================
 # Target rules for target app/CMakeFiles/engmsc-app.dir
 
 # All Build rule for target.
-app/CMakeFiles/engmsc-app.dir/all:
+app/CMakeFiles/engmsc-app.dir/all: app/dep/nanogui/CMakeFiles/nanogui.dir/all
+app/CMakeFiles/engmsc-app.dir/all: app/dep/glad/CMakeFiles/glad.dir/all
 	$(MAKE) -f app/CMakeFiles/engmsc-app.dir/build.make app/CMakeFiles/engmsc-app.dir/depend
 	$(MAKE) -f app/CMakeFiles/engmsc-app.dir/build.make app/CMakeFiles/engmsc-app.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/fern/Desktop/engmsc/build/CMakeFiles --progress-num=1,2 "Built target engmsc-app"
@@ -97,7 +188,7 @@ app/CMakeFiles/engmsc-app.dir/all:
 
 # Build rule for subdir invocation for target.
 app/CMakeFiles/engmsc-app.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 56
 	$(MAKE) -f CMakeFiles/Makefile2 app/CMakeFiles/engmsc-app.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 0
 .PHONY : app/CMakeFiles/engmsc-app.dir/rule
@@ -111,6 +202,249 @@ engmsc-app: app/CMakeFiles/engmsc-app.dir/rule
 app/CMakeFiles/engmsc-app.dir/clean:
 	$(MAKE) -f app/CMakeFiles/engmsc-app.dir/build.make app/CMakeFiles/engmsc-app.dir/clean
 .PHONY : app/CMakeFiles/engmsc-app.dir/clean
+
+#=============================================================================
+# Target rules for target app/dep/nanogui/CMakeFiles/example_icons.dir
+
+# All Build rule for target.
+app/dep/nanogui/CMakeFiles/example_icons.dir/all: app/dep/nanogui/CMakeFiles/nanogui.dir/all
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example_icons.dir/build.make app/dep/nanogui/CMakeFiles/example_icons.dir/depend
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example_icons.dir/build.make app/dep/nanogui/CMakeFiles/example_icons.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/fern/Desktop/engmsc/build/CMakeFiles --progress-num=11,12 "Built target example_icons"
+.PHONY : app/dep/nanogui/CMakeFiles/example_icons.dir/all
+
+# Build rule for subdir invocation for target.
+app/dep/nanogui/CMakeFiles/example_icons.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 54
+	$(MAKE) -f CMakeFiles/Makefile2 app/dep/nanogui/CMakeFiles/example_icons.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 0
+.PHONY : app/dep/nanogui/CMakeFiles/example_icons.dir/rule
+
+# Convenience name for target.
+example_icons: app/dep/nanogui/CMakeFiles/example_icons.dir/rule
+
+.PHONY : example_icons
+
+# clean rule for target.
+app/dep/nanogui/CMakeFiles/example_icons.dir/clean:
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example_icons.dir/build.make app/dep/nanogui/CMakeFiles/example_icons.dir/clean
+.PHONY : app/dep/nanogui/CMakeFiles/example_icons.dir/clean
+
+#=============================================================================
+# Target rules for target app/dep/nanogui/CMakeFiles/example4.dir
+
+# All Build rule for target.
+app/dep/nanogui/CMakeFiles/example4.dir/all: app/dep/nanogui/CMakeFiles/nanogui.dir/all
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example4.dir/build.make app/dep/nanogui/CMakeFiles/example4.dir/depend
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example4.dir/build.make app/dep/nanogui/CMakeFiles/example4.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/fern/Desktop/engmsc/build/CMakeFiles --progress-num=9,10 "Built target example4"
+.PHONY : app/dep/nanogui/CMakeFiles/example4.dir/all
+
+# Build rule for subdir invocation for target.
+app/dep/nanogui/CMakeFiles/example4.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 54
+	$(MAKE) -f CMakeFiles/Makefile2 app/dep/nanogui/CMakeFiles/example4.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 0
+.PHONY : app/dep/nanogui/CMakeFiles/example4.dir/rule
+
+# Convenience name for target.
+example4: app/dep/nanogui/CMakeFiles/example4.dir/rule
+
+.PHONY : example4
+
+# clean rule for target.
+app/dep/nanogui/CMakeFiles/example4.dir/clean:
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example4.dir/build.make app/dep/nanogui/CMakeFiles/example4.dir/clean
+.PHONY : app/dep/nanogui/CMakeFiles/example4.dir/clean
+
+#=============================================================================
+# Target rules for target app/dep/nanogui/CMakeFiles/example3.dir
+
+# All Build rule for target.
+app/dep/nanogui/CMakeFiles/example3.dir/all: app/dep/nanogui/CMakeFiles/nanogui.dir/all
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example3.dir/build.make app/dep/nanogui/CMakeFiles/example3.dir/depend
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example3.dir/build.make app/dep/nanogui/CMakeFiles/example3.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/fern/Desktop/engmsc/build/CMakeFiles --progress-num=7,8 "Built target example3"
+.PHONY : app/dep/nanogui/CMakeFiles/example3.dir/all
+
+# Build rule for subdir invocation for target.
+app/dep/nanogui/CMakeFiles/example3.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 54
+	$(MAKE) -f CMakeFiles/Makefile2 app/dep/nanogui/CMakeFiles/example3.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 0
+.PHONY : app/dep/nanogui/CMakeFiles/example3.dir/rule
+
+# Convenience name for target.
+example3: app/dep/nanogui/CMakeFiles/example3.dir/rule
+
+.PHONY : example3
+
+# clean rule for target.
+app/dep/nanogui/CMakeFiles/example3.dir/clean:
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example3.dir/build.make app/dep/nanogui/CMakeFiles/example3.dir/clean
+.PHONY : app/dep/nanogui/CMakeFiles/example3.dir/clean
+
+#=============================================================================
+# Target rules for target app/dep/nanogui/CMakeFiles/example2.dir
+
+# All Build rule for target.
+app/dep/nanogui/CMakeFiles/example2.dir/all: app/dep/nanogui/CMakeFiles/nanogui.dir/all
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example2.dir/build.make app/dep/nanogui/CMakeFiles/example2.dir/depend
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example2.dir/build.make app/dep/nanogui/CMakeFiles/example2.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/fern/Desktop/engmsc/build/CMakeFiles --progress-num=5,6 "Built target example2"
+.PHONY : app/dep/nanogui/CMakeFiles/example2.dir/all
+
+# Build rule for subdir invocation for target.
+app/dep/nanogui/CMakeFiles/example2.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 54
+	$(MAKE) -f CMakeFiles/Makefile2 app/dep/nanogui/CMakeFiles/example2.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 0
+.PHONY : app/dep/nanogui/CMakeFiles/example2.dir/rule
+
+# Convenience name for target.
+example2: app/dep/nanogui/CMakeFiles/example2.dir/rule
+
+.PHONY : example2
+
+# clean rule for target.
+app/dep/nanogui/CMakeFiles/example2.dir/clean:
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example2.dir/build.make app/dep/nanogui/CMakeFiles/example2.dir/clean
+.PHONY : app/dep/nanogui/CMakeFiles/example2.dir/clean
+
+#=============================================================================
+# Target rules for target app/dep/nanogui/CMakeFiles/example1.dir
+
+# All Build rule for target.
+app/dep/nanogui/CMakeFiles/example1.dir/all: app/dep/nanogui/CMakeFiles/nanogui.dir/all
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example1.dir/build.make app/dep/nanogui/CMakeFiles/example1.dir/depend
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example1.dir/build.make app/dep/nanogui/CMakeFiles/example1.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/fern/Desktop/engmsc/build/CMakeFiles --progress-num=3,4 "Built target example1"
+.PHONY : app/dep/nanogui/CMakeFiles/example1.dir/all
+
+# Build rule for subdir invocation for target.
+app/dep/nanogui/CMakeFiles/example1.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 54
+	$(MAKE) -f CMakeFiles/Makefile2 app/dep/nanogui/CMakeFiles/example1.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 0
+.PHONY : app/dep/nanogui/CMakeFiles/example1.dir/rule
+
+# Convenience name for target.
+example1: app/dep/nanogui/CMakeFiles/example1.dir/rule
+
+.PHONY : example1
+
+# clean rule for target.
+app/dep/nanogui/CMakeFiles/example1.dir/clean:
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/example1.dir/build.make app/dep/nanogui/CMakeFiles/example1.dir/clean
+.PHONY : app/dep/nanogui/CMakeFiles/example1.dir/clean
+
+#=============================================================================
+# Target rules for target app/dep/nanogui/CMakeFiles/nanogui.dir
+
+# All Build rule for target.
+app/dep/nanogui/CMakeFiles/nanogui.dir/all: app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/all
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/nanogui.dir/build.make app/dep/nanogui/CMakeFiles/nanogui.dir/depend
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/nanogui.dir/build.make app/dep/nanogui/CMakeFiles/nanogui.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/fern/Desktop/engmsc/build/CMakeFiles --progress-num=32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67 "Built target nanogui"
+.PHONY : app/dep/nanogui/CMakeFiles/nanogui.dir/all
+
+# Build rule for subdir invocation for target.
+app/dep/nanogui/CMakeFiles/nanogui.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 52
+	$(MAKE) -f CMakeFiles/Makefile2 app/dep/nanogui/CMakeFiles/nanogui.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 0
+.PHONY : app/dep/nanogui/CMakeFiles/nanogui.dir/rule
+
+# Convenience name for target.
+nanogui: app/dep/nanogui/CMakeFiles/nanogui.dir/rule
+
+.PHONY : nanogui
+
+# clean rule for target.
+app/dep/nanogui/CMakeFiles/nanogui.dir/clean:
+	$(MAKE) -f app/dep/nanogui/CMakeFiles/nanogui.dir/build.make app/dep/nanogui/CMakeFiles/nanogui.dir/clean
+.PHONY : app/dep/nanogui/CMakeFiles/nanogui.dir/clean
+
+#=============================================================================
+# Target rules for target app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw.dir
+
+# All Build rule for target.
+app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw.dir/all: app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/all
+	$(MAKE) -f app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw.dir/build.make app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw.dir/depend
+	$(MAKE) -f app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw.dir/build.make app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/fern/Desktop/engmsc/build/CMakeFiles --progress-num=15 "Built target glfw"
+.PHONY : app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw.dir/all
+
+# Build rule for subdir invocation for target.
+app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 17
+	$(MAKE) -f CMakeFiles/Makefile2 app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 0
+.PHONY : app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw.dir/rule
+
+# Convenience name for target.
+glfw: app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw.dir/rule
+
+.PHONY : glfw
+
+# clean rule for target.
+app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw.dir/clean:
+	$(MAKE) -f app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw.dir/build.make app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw.dir/clean
+.PHONY : app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw.dir/clean
+
+#=============================================================================
+# Target rules for target app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir
+
+# All Build rule for target.
+app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/all:
+	$(MAKE) -f app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/build.make app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/depend
+	$(MAKE) -f app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/build.make app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/fern/Desktop/engmsc/build/CMakeFiles --progress-num=16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31 "Built target glfw_objects"
+.PHONY : app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/all
+
+# Build rule for subdir invocation for target.
+app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 16
+	$(MAKE) -f CMakeFiles/Makefile2 app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 0
+.PHONY : app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/rule
+
+# Convenience name for target.
+glfw_objects: app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/rule
+
+.PHONY : glfw_objects
+
+# clean rule for target.
+app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/clean:
+	$(MAKE) -f app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/build.make app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/clean
+.PHONY : app/dep/nanogui/ext/glfw/src/CMakeFiles/glfw_objects.dir/clean
+
+#=============================================================================
+# Target rules for target app/dep/glad/CMakeFiles/glad.dir
+
+# All Build rule for target.
+app/dep/glad/CMakeFiles/glad.dir/all:
+	$(MAKE) -f app/dep/glad/CMakeFiles/glad.dir/build.make app/dep/glad/CMakeFiles/glad.dir/depend
+	$(MAKE) -f app/dep/glad/CMakeFiles/glad.dir/build.make app/dep/glad/CMakeFiles/glad.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/fern/Desktop/engmsc/build/CMakeFiles --progress-num=13,14 "Built target glad"
+.PHONY : app/dep/glad/CMakeFiles/glad.dir/all
+
+# Build rule for subdir invocation for target.
+app/dep/glad/CMakeFiles/glad.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 2
+	$(MAKE) -f CMakeFiles/Makefile2 app/dep/glad/CMakeFiles/glad.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/fern/Desktop/engmsc/build/CMakeFiles 0
+.PHONY : app/dep/glad/CMakeFiles/glad.dir/rule
+
+# Convenience name for target.
+glad: app/dep/glad/CMakeFiles/glad.dir/rule
+
+.PHONY : glad
+
+# clean rule for target.
+app/dep/glad/CMakeFiles/glad.dir/clean:
+	$(MAKE) -f app/dep/glad/CMakeFiles/glad.dir/build.make app/dep/glad/CMakeFiles/glad.dir/clean
+.PHONY : app/dep/glad/CMakeFiles/glad.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.
