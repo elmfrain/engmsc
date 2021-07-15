@@ -1,3 +1,0 @@
-[submodule "app/dep/--force"]
-	path = app/dep/--force
-	url = https://github.com/mitsuba-renderer/nanogui.git
