@@ -9,6 +9,12 @@ if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
     
 endif()
 
+#Add NanoGUI
+set(NANOGUI_BUILD_EXAMPLE OFF CACHE BOOL " " FORCE)
+set(NANOGUI_BUILD_PYTHON  OFF CACHE BOOL " " FORCE)
+set(NANOGUI_INSTALL       OFF CACHE BOOL " " FORCE)
+add_subdirectory(dep/nanogui)
+
 #Find SMFL
 find_package(SFML 2.5 COMPONENTS system window graphics audio REQUIRED)
 
