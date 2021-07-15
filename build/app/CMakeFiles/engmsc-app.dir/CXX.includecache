@@ -7,6 +7,10 @@
 #IncludeRegexTransform: 
 
 /home/fern/Desktop/engmsc/app/src/main.cpp
+SFML/Graphics.hpp
+-
+SFML/Audio.hpp
+-
 iostream
 -
 

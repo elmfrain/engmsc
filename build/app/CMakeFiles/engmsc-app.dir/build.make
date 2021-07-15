@@ -60,15 +60,15 @@ include app/CMakeFiles/engmsc-app.dir/flags.make
 app/CMakeFiles/engmsc-app.dir/src/main.cpp.o: app/CMakeFiles/engmsc-app.dir/flags.make
 app/CMakeFiles/engmsc-app.dir/src/main.cpp.o: ../app/src/main.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/fern/Desktop/engmsc/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object app/CMakeFiles/engmsc-app.dir/src/main.cpp.o"
-	cd /home/fern/Desktop/engmsc/build/app && /usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/engmsc-app.dir/src/main.cpp.o -c /home/fern/Desktop/engmsc/app/src/main.cpp
+	cd /home/fern/Desktop/engmsc/build/app && /bin/x86_64-linux-gnu-g++-9  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/engmsc-app.dir/src/main.cpp.o -c /home/fern/Desktop/engmsc/app/src/main.cpp
 
 app/CMakeFiles/engmsc-app.dir/src/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/engmsc-app.dir/src/main.cpp.i"
-	cd /home/fern/Desktop/engmsc/build/app && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fern/Desktop/engmsc/app/src/main.cpp > CMakeFiles/engmsc-app.dir/src/main.cpp.i
+	cd /home/fern/Desktop/engmsc/build/app && /bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fern/Desktop/engmsc/app/src/main.cpp > CMakeFiles/engmsc-app.dir/src/main.cpp.i
 
 app/CMakeFiles/engmsc-app.dir/src/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/engmsc-app.dir/src/main.cpp.s"
-	cd /home/fern/Desktop/engmsc/build/app && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fern/Desktop/engmsc/app/src/main.cpp -o CMakeFiles/engmsc-app.dir/src/main.cpp.s
+	cd /home/fern/Desktop/engmsc/build/app && /bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fern/Desktop/engmsc/app/src/main.cpp -o CMakeFiles/engmsc-app.dir/src/main.cpp.s
 
 # Object files for target engmsc-app
 engmsc__app_OBJECTS = \
@@ -79,6 +79,8 @@ engmsc__app_EXTERNAL_OBJECTS =
 
 app/engmsc-app: app/CMakeFiles/engmsc-app.dir/src/main.cpp.o
 app/engmsc-app: app/CMakeFiles/engmsc-app.dir/build.make
+app/engmsc-app: /usr/lib/x86_64-linux-gnu/libsfml-audio.so.2.5.1
+app/engmsc-app: /usr/lib/x86_64-linux-gnu/libsfml-system.so.2.5.1
 app/engmsc-app: app/CMakeFiles/engmsc-app.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/fern/Desktop/engmsc/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable engmsc-app"
 	cd /home/fern/Desktop/engmsc/build/app && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/engmsc-app.dir/link.txt --verbose=$(VERBOSE)
