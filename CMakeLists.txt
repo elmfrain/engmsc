@@ -5,6 +5,7 @@ project(engmsc)
 add_library(engmsc STATIC
     src/IAudioContext.cpp
     src/AudioStream.cpp
+    src/BandFilter.cpp
 
     src/al/ALAudioContext.cpp
 )

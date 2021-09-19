@@ -77,11 +77,11 @@ AudioStream::TimedSoundEvent::TimedSoundEvent(const SoundEvent& p_event, double 
     event(p_event),
     timeToPlay(p_time) {}
 
-#include <GLFW/glfw3.h>
-
 void AudioStream::i_bufferingThread()
 {
-    int j = 0.0;
+    #define F(x) (1000.0 / (10 * double(x) / SAMPLE_RATE + 1))
+    #define G(x) (1.0 / (10.0 * double(x) / SAMPLE_RATE + 1))
+    int j = 1;
     while(!m_exitThread)
     {
         {
@@ -92,7 +92,14 @@ void AudioStream::i_bufferingThread()
 
                 for(int i = 0; i < SAMPLES_PER_BUFFER; i++)
                 {
-                    currentBuffer.data[i] = sin((j++ * 3.1415 * 1000) / 44100) * 30000;
+                    float noise = 2.0f * float(rand()) / RAND_MAX - 1.0f;
+                    currentBuffer.data[i] = sin((j++ * 3.1415 * (80 + F(j * 10))) / 44100) * 30000 * G(j * 6);
+                    currentBuffer.data[i] += noise * 5000 * G(j * 200);
+
+                    if(double(j) / SAMPLE_RATE > 0.5 / getTime())
+                    {
+                        j = 1;
+                    }
                 }
 
                 m_outputBufferQueue.push(&currentBuffer);

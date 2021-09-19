@@ -14,8 +14,8 @@
 #include <condition_variable>
 
 #define SAMPLE_RATE 44100
-#define SAMPLES_PER_BUFFER 2048
-#define BUFFER_POOL_SIZE 4
+#define SAMPLES_PER_BUFFER 4098
+#define BUFFER_POOL_SIZE 3
 
 class AudioStream
 {

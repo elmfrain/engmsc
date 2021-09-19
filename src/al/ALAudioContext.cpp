@@ -67,6 +67,7 @@ bool ALAudioContext::removeStream(AudioStream& audioStream)
         if(streamChannel.audioStream == &audioStream)
         {
             alDeleteSources(1, &streamChannel.alSource);
+            alDeleteBuffers(BUFFER_POOL_SIZE, streamChannel.alBufferPool);
 
             return true;
         }
