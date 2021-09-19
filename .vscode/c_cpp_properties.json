@@ -4,13 +4,20 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/include/SFML"
+                "/usr/include/SFML",
+                "${workspaceFolder}/app/dep/glad/include",
+                "${workspaceFolder}/app/dep/nanogui/include",
+                "${workspaceFolder}/app/include",
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/include"
             ],
             "defines": [],
             "compilerPath": "/home/linuxbrew/.linuxbrew/bin/gcc-10",
             "cStandard": "gnu17",
             "cppStandard": "gnu++17",
-            "intelliSenseMode": "linux-gcc-x64"
+            "intelliSenseMode": "linux-gcc-x64",
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+            "configurationProvider": "ms-vscode.cmake-tools"
         }
     ],
     "version": 4

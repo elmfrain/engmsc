@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/engmsc-app.dir/src/FlywheelRenderer.cpp.o"
+  "CMakeFiles/engmsc-app.dir/src/MainScreen.cpp.o"
   "CMakeFiles/engmsc-app.dir/src/main.cpp.o"
   "engmsc-app"
   "engmsc-app.pdb"

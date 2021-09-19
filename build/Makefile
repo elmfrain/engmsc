@@ -56,6 +56,52 @@ CMAKE_BINARY_DIR = /home/fern/Desktop/engmsc/build
 #=============================================================================
 # Targets provided globally by CMake.
 
+# Special rule for the target install/strip
+install/strip: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
+	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip
+
+# Special rule for the target install/strip
+install/strip/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
+	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip/fast
+
+# Special rule for the target install/local
+install/local: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local
+
+# Special rule for the target install/local
+install/local/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local/fast
+
+# Special rule for the target install
+install: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
+	/usr/bin/cmake -P cmake_install.cmake
+.PHONY : install
+
+# Special rule for the target install
+install/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
+	/usr/bin/cmake -P cmake_install.cmake
+.PHONY : install/fast
+
+# Special rule for the target list_install_components
+list_install_components:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\" \"assimp-dev\" \"libassimp5.0.1-dev\""
+.PHONY : list_install_components
+
+# Special rule for the target list_install_components
+list_install_components/fast: list_install_components
+
+.PHONY : list_install_components/fast
+
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
@@ -109,6 +155,19 @@ preinstall/fast:
 depend:
 	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
+
+#=============================================================================
+# Target rules for targets named engmsc
+
+# Build rule for target.
+engmsc: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 engmsc
+.PHONY : engmsc
+
+# fast build rule for target.
+engmsc/fast:
+	$(MAKE) -f CMakeFiles/engmsc.dir/build.make CMakeFiles/engmsc.dir/build
+.PHONY : engmsc/fast
 
 #=============================================================================
 # Target rules for targets named engmsc-app
@@ -228,6 +287,19 @@ glfw_objects/fast:
 .PHONY : glfw_objects/fast
 
 #=============================================================================
+# Target rules for targets named assimp
+
+# Build rule for target.
+assimp: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 assimp
+.PHONY : assimp
+
+# fast build rule for target.
+assimp/fast:
+	$(MAKE) -f app/dep/assimp/code/CMakeFiles/assimp.dir/build.make app/dep/assimp/code/CMakeFiles/assimp.dir/build
+.PHONY : assimp/fast
+
+#=============================================================================
 # Target rules for targets named glad
 
 # Build rule for target.
@@ -240,14 +312,126 @@ glad/fast:
 	$(MAKE) -f app/dep/glad/CMakeFiles/glad.dir/build.make app/dep/glad/CMakeFiles/glad.dir/build
 .PHONY : glad/fast
 
+#=============================================================================
+# Target rules for targets named uninstall
+
+# Build rule for target.
+uninstall: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 uninstall
+.PHONY : uninstall
+
+# fast build rule for target.
+uninstall/fast:
+	$(MAKE) -f app/dep/glm/CMakeFiles/uninstall.dir/build.make app/dep/glm/CMakeFiles/uninstall.dir/build
+.PHONY : uninstall/fast
+
+#=============================================================================
+# Target rules for targets named glm_shared
+
+# Build rule for target.
+glm_shared: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 glm_shared
+.PHONY : glm_shared
+
+# fast build rule for target.
+glm_shared/fast:
+	$(MAKE) -f app/dep/glm/glm/CMakeFiles/glm_shared.dir/build.make app/dep/glm/glm/CMakeFiles/glm_shared.dir/build
+.PHONY : glm_shared/fast
+
+src/AudioStream.o: src/AudioStream.cpp.o
+
+.PHONY : src/AudioStream.o
+
+# target to build an object file
+src/AudioStream.cpp.o:
+	$(MAKE) -f CMakeFiles/engmsc.dir/build.make CMakeFiles/engmsc.dir/src/AudioStream.cpp.o
+.PHONY : src/AudioStream.cpp.o
+
+src/AudioStream.i: src/AudioStream.cpp.i
+
+.PHONY : src/AudioStream.i
+
+# target to preprocess a source file
+src/AudioStream.cpp.i:
+	$(MAKE) -f CMakeFiles/engmsc.dir/build.make CMakeFiles/engmsc.dir/src/AudioStream.cpp.i
+.PHONY : src/AudioStream.cpp.i
+
+src/AudioStream.s: src/AudioStream.cpp.s
+
+.PHONY : src/AudioStream.s
+
+# target to generate assembly for a file
+src/AudioStream.cpp.s:
+	$(MAKE) -f CMakeFiles/engmsc.dir/build.make CMakeFiles/engmsc.dir/src/AudioStream.cpp.s
+.PHONY : src/AudioStream.cpp.s
+
+src/IAudioContext.o: src/IAudioContext.cpp.o
+
+.PHONY : src/IAudioContext.o
+
+# target to build an object file
+src/IAudioContext.cpp.o:
+	$(MAKE) -f CMakeFiles/engmsc.dir/build.make CMakeFiles/engmsc.dir/src/IAudioContext.cpp.o
+.PHONY : src/IAudioContext.cpp.o
+
+src/IAudioContext.i: src/IAudioContext.cpp.i
+
+.PHONY : src/IAudioContext.i
+
+# target to preprocess a source file
+src/IAudioContext.cpp.i:
+	$(MAKE) -f CMakeFiles/engmsc.dir/build.make CMakeFiles/engmsc.dir/src/IAudioContext.cpp.i
+.PHONY : src/IAudioContext.cpp.i
+
+src/IAudioContext.s: src/IAudioContext.cpp.s
+
+.PHONY : src/IAudioContext.s
+
+# target to generate assembly for a file
+src/IAudioContext.cpp.s:
+	$(MAKE) -f CMakeFiles/engmsc.dir/build.make CMakeFiles/engmsc.dir/src/IAudioContext.cpp.s
+.PHONY : src/IAudioContext.cpp.s
+
+src/al/ALAudioContext.o: src/al/ALAudioContext.cpp.o
+
+.PHONY : src/al/ALAudioContext.o
+
+# target to build an object file
+src/al/ALAudioContext.cpp.o:
+	$(MAKE) -f CMakeFiles/engmsc.dir/build.make CMakeFiles/engmsc.dir/src/al/ALAudioContext.cpp.o
+.PHONY : src/al/ALAudioContext.cpp.o
+
+src/al/ALAudioContext.i: src/al/ALAudioContext.cpp.i
+
+.PHONY : src/al/ALAudioContext.i
+
+# target to preprocess a source file
+src/al/ALAudioContext.cpp.i:
+	$(MAKE) -f CMakeFiles/engmsc.dir/build.make CMakeFiles/engmsc.dir/src/al/ALAudioContext.cpp.i
+.PHONY : src/al/ALAudioContext.cpp.i
+
+src/al/ALAudioContext.s: src/al/ALAudioContext.cpp.s
+
+.PHONY : src/al/ALAudioContext.s
+
+# target to generate assembly for a file
+src/al/ALAudioContext.cpp.s:
+	$(MAKE) -f CMakeFiles/engmsc.dir/build.make CMakeFiles/engmsc.dir/src/al/ALAudioContext.cpp.s
+.PHONY : src/al/ALAudioContext.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
+	@echo "... install/strip"
+	@echo "... install/local"
+	@echo "... install"
+	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
+	@echo "... engmsc"
 	@echo "... engmsc-app"
 	@echo "... example_icons"
 	@echo "... example4"
@@ -257,7 +441,19 @@ help:
 	@echo "... nanogui"
 	@echo "... glfw"
 	@echo "... glfw_objects"
+	@echo "... assimp"
 	@echo "... glad"
+	@echo "... uninstall"
+	@echo "... glm_shared"
+	@echo "... src/AudioStream.o"
+	@echo "... src/AudioStream.i"
+	@echo "... src/AudioStream.s"
+	@echo "... src/IAudioContext.o"
+	@echo "... src/IAudioContext.i"
+	@echo "... src/IAudioContext.s"
+	@echo "... src/al/ALAudioContext.o"
+	@echo "... src/al/ALAudioContext.i"
+	@echo "... src/al/ALAudioContext.s"
 .PHONY : help
 
 

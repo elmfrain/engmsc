@@ -1,35 +1,44 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <nanogui/nanogui.h>
 
-#include <SFML/Audio.hpp>
+#include <engmsc-app/MainScreen.hpp>
+#include <engmsc-app/FlywheelRenderer.hpp>
+
+#include <engmsc/al/ALAudioContext.hpp>
+
 #include <iostream>
 
-sf::SoundBuffer defaultSound;
-sf::Sound sound;
-
-namespace ngi = nanogui;
-
 GLFWwindow* glfwWindow = 0;
+MainScreen* mainScreen = nullptr;
 
 void initializeGLFWwindow();
 
 int main()
 {
-    defaultSound.loadFromFile("rsc/sound/thud.wav");
-    sound.setBuffer(defaultSound);
-
     initializeGLFWwindow();
+
+    MainScreen::setGLFWwindow(glfwWindow);
+    mainScreen = MainScreen::getScreen();
+
+    FlywheelRenderer::initialize();
+    AudioStream stream;
+    ALAudioContext ctx;
+    ctx.initContext();
+    ctx.addStream(stream);
 
     while(!glfwWindowShouldClose(glfwWindow))
     {
-        glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.35f, 0.5f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);        
+        FlywheelRenderer::draw();
+        mainScreen->refreshValues();
+        mainScreen->draw_widgets();
 
         glfwPollEvents();
         glfwSwapBuffers(glfwWindow);
     }
 
+    ctx.destroyContext();
     glfwTerminate();
     return 0;
 }
@@ -52,7 +61,8 @@ void initializeGLFWwindow()
     glfwWindowHint(GLFW_ALPHA_BITS, 8);
     glfwWindowHint(GLFW_STENCIL_BITS, 8);
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
-    glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     glfwWindow = glfwCreateWindow(1280, 720, "EngMsc Application", NULL, NULL);
     if(!glfwWindow)
@@ -61,9 +71,12 @@ void initializeGLFWwindow()
     }
 
     glfwMakeContextCurrent(glfwWindow);
+    glfwSwapInterval(1);
 
     if(!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
     {
         throw std::runtime_error("Unable to initialize GLAD!");
     }
+
+    glEnable(GL_MULTISAMPLE);
 }

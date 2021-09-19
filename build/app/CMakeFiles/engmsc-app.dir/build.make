@@ -70,21 +70,55 @@ app/CMakeFiles/engmsc-app.dir/src/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/engmsc-app.dir/src/main.cpp.s"
 	cd /home/fern/Desktop/engmsc/build/app && /bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fern/Desktop/engmsc/app/src/main.cpp -o CMakeFiles/engmsc-app.dir/src/main.cpp.s
 
+app/CMakeFiles/engmsc-app.dir/src/MainScreen.cpp.o: app/CMakeFiles/engmsc-app.dir/flags.make
+app/CMakeFiles/engmsc-app.dir/src/MainScreen.cpp.o: ../app/src/MainScreen.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/fern/Desktop/engmsc/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object app/CMakeFiles/engmsc-app.dir/src/MainScreen.cpp.o"
+	cd /home/fern/Desktop/engmsc/build/app && /bin/x86_64-linux-gnu-g++-9  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/engmsc-app.dir/src/MainScreen.cpp.o -c /home/fern/Desktop/engmsc/app/src/MainScreen.cpp
+
+app/CMakeFiles/engmsc-app.dir/src/MainScreen.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/engmsc-app.dir/src/MainScreen.cpp.i"
+	cd /home/fern/Desktop/engmsc/build/app && /bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fern/Desktop/engmsc/app/src/MainScreen.cpp > CMakeFiles/engmsc-app.dir/src/MainScreen.cpp.i
+
+app/CMakeFiles/engmsc-app.dir/src/MainScreen.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/engmsc-app.dir/src/MainScreen.cpp.s"
+	cd /home/fern/Desktop/engmsc/build/app && /bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fern/Desktop/engmsc/app/src/MainScreen.cpp -o CMakeFiles/engmsc-app.dir/src/MainScreen.cpp.s
+
+app/CMakeFiles/engmsc-app.dir/src/FlywheelRenderer.cpp.o: app/CMakeFiles/engmsc-app.dir/flags.make
+app/CMakeFiles/engmsc-app.dir/src/FlywheelRenderer.cpp.o: ../app/src/FlywheelRenderer.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/fern/Desktop/engmsc/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object app/CMakeFiles/engmsc-app.dir/src/FlywheelRenderer.cpp.o"
+	cd /home/fern/Desktop/engmsc/build/app && /bin/x86_64-linux-gnu-g++-9  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/engmsc-app.dir/src/FlywheelRenderer.cpp.o -c /home/fern/Desktop/engmsc/app/src/FlywheelRenderer.cpp
+
+app/CMakeFiles/engmsc-app.dir/src/FlywheelRenderer.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/engmsc-app.dir/src/FlywheelRenderer.cpp.i"
+	cd /home/fern/Desktop/engmsc/build/app && /bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/fern/Desktop/engmsc/app/src/FlywheelRenderer.cpp > CMakeFiles/engmsc-app.dir/src/FlywheelRenderer.cpp.i
+
+app/CMakeFiles/engmsc-app.dir/src/FlywheelRenderer.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/engmsc-app.dir/src/FlywheelRenderer.cpp.s"
+	cd /home/fern/Desktop/engmsc/build/app && /bin/x86_64-linux-gnu-g++-9 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/fern/Desktop/engmsc/app/src/FlywheelRenderer.cpp -o CMakeFiles/engmsc-app.dir/src/FlywheelRenderer.cpp.s
+
 # Object files for target engmsc-app
 engmsc__app_OBJECTS = \
-"CMakeFiles/engmsc-app.dir/src/main.cpp.o"
+"CMakeFiles/engmsc-app.dir/src/main.cpp.o" \
+"CMakeFiles/engmsc-app.dir/src/MainScreen.cpp.o" \
+"CMakeFiles/engmsc-app.dir/src/FlywheelRenderer.cpp.o"
 
 # External object files for target engmsc-app
 engmsc__app_EXTERNAL_OBJECTS =
 
 app/engmsc-app: app/CMakeFiles/engmsc-app.dir/src/main.cpp.o
+app/engmsc-app: app/CMakeFiles/engmsc-app.dir/src/MainScreen.cpp.o
+app/engmsc-app: app/CMakeFiles/engmsc-app.dir/src/FlywheelRenderer.cpp.o
 app/engmsc-app: app/CMakeFiles/engmsc-app.dir/build.make
 app/engmsc-app: /usr/lib/x86_64-linux-gnu/libsfml-audio.so.2.5.1
-app/engmsc-app: app/dep/nanogui/libnanogui.so
+app/engmsc-app: app/dep/nanogui/libnanogui.a
 app/engmsc-app: app/dep/glad/libglad.a
+app/engmsc-app: app/dep/assimp/bin/libassimp.so.5.0.1
+app/engmsc-app: libengmsc.a
 app/engmsc-app: /usr/lib/x86_64-linux-gnu/libsfml-system.so.2.5.1
+app/engmsc-app: /usr/lib/x86_64-linux-gnu/libz.so
+app/engmsc-app: /usr/lib/x86_64-linux-gnu/librt.so
 app/engmsc-app: app/CMakeFiles/engmsc-app.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/fern/Desktop/engmsc/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable engmsc-app"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/fern/Desktop/engmsc/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable engmsc-app"
 	cd /home/fern/Desktop/engmsc/build/app && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/engmsc-app.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
