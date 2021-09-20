@@ -4,8 +4,10 @@ project(engmsc)
 
 add_library(engmsc STATIC
     src/IAudioContext.cpp
+    src/IAudioProducer.cpp
     src/AudioStream.cpp
-    src/BandFilter.cpp
+    src/KickProducer.cpp
+    src/SoundEvent.cpp
 
     src/al/ALAudioContext.cpp
 )

@@ -61,18 +61,24 @@ bool ALAudioContext::removeStream(AudioStream& audioStream)
 {
     alcMakeContextCurrent(m_alContext);
 
+    AudioStream* streamPtr = &audioStream;
+    bool successfullyRemoved = false;
+
     std::unique_lock<std::mutex> lock(m_streamListMutex);
-    for(StreamChannel& streamChannel : m_activeStreams)
+    m_activeStreams.remove_if([&](StreamChannel& streamChannel)
     {
-        if(streamChannel.audioStream == &audioStream)
+        if(streamChannel.audioStream == streamPtr)
         {
             alDeleteSources(1, &streamChannel.alSource);
             alDeleteBuffers(BUFFER_POOL_SIZE, streamChannel.alBufferPool);
 
+            successfullyRemoved = true;
             return true;
         }
-    }
-    return false;
+        return false;
+    });
+
+    return successfullyRemoved;
 }
 
 void ALAudioContext::destroyContext()

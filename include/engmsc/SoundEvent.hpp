@@ -8,6 +8,8 @@
 struct SoundEvent
 {
 public:
+    SoundEvent(IAudioProducer* producer, float volume = 1.0f, float pitch = 1.0f);
+
     float volume = 1.0f;
     float pitch = 1.0f;
     IAudioProducer* audioProducer = nullptr;

@@ -43,9 +43,13 @@ MainScreen::MainScreen()
     initialize(glfwWindow, false);
     setupGLFWcallbacks();
 
+    audCtx.initContext();
+    audCtx.addStream(audStream);
+
     setupEngineStatusWindow(0);
     setupEngineInputWindow(100);
     setupEngineConfigWindow(233);
+    setupKickConfigWindow();
 
     set_visible(true);
     perform_layout();
@@ -180,12 +184,64 @@ int MainScreen::setupEngineConfigWindow(int y)
     return window->height() + window->position().y();
 }
 
+int MainScreen::setupKickConfigWindow()
+{
+    using namespace nanogui;
+
+    Window* window = new Window(this, "Kick Configuration");
+    window->set_layout(new GridLayout(Orientation::Horizontal, 2, Alignment::Middle, 5, 10));
+    window->set_position(Vector2i(400, 0));
+
+    new Label(window, "Level");
+    Slider* slider = new Slider(window);
+    slider->set_fixed_width(160);
+
+    new Label(window, "Pitch");
+    slider = new Slider(window);
+    slider->set_fixed_width(160);
+
+    new Label(window, "EG Attack");
+    slider = new Slider(window);
+    slider->set_fixed_width(160);
+
+    new Label(window, "EG Release");
+    slider = new Slider(window);
+    slider->set_fixed_width(160);
+
+    new Label(window, "Mod Amount");
+    slider = new Slider(window);
+    slider->set_fixed_width(160);
+
+    new Label(window, "Mod Rate");
+    slider = new Slider(window);
+    slider->set_fixed_width(160);
+
+    Button* button = new Button(window, "Kick");
+    button->set_callback([&]()
+    {
+        audStream.playEvent(SoundEvent(new KickProducer()));
+    });
+
+    statusDisplay.nbSoundField = new TextBox(window);
+    statusDisplay.nbSoundField->set_units("sounds");
+
+    return 0;
+}
+
+void MainScreen::destroyAudioContext()
+{
+    audCtx.destroyContext();
+}
+
 void MainScreen::refreshValues()
 {
     FlywheelRenderer::Engine* engine = FlywheelRenderer::getEngine();
 
     statusDisplay.rpmField->set_value(std::to_string((int) engine->rpm));
     statusDisplay.coolantTempField->set_value(std::to_string((int) engine->coolantTemperature));
+    statusDisplay.nbSoundField->set_value(std::to_string(audStream.getNbSounds()));
+
+    
 }
 
 void MainScreen::setGLFWwindow(GLFWwindow* window)

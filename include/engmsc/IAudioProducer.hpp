@@ -9,8 +9,14 @@
 class IAudioProducer
 {
 public:
-    virtual size_t produceSamples(uint16_t* buffer, size_t bufferLen) = 0;
-    virtual double getDuration() = 0;
+    IAudioProducer();
+
+    virtual size_t produceSamples(float* buffer, size_t bufferLen) = 0;
+    virtual size_t addOntoSamples(float* buffer, size_t bufferLen) = 0;
+    virtual double getDuration() const = 0;
+    virtual bool hasExpired() const = 0;
+
+    virtual ~IAudioProducer();
 };
 
 #endif

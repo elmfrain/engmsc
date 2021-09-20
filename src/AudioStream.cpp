@@ -7,7 +7,7 @@ typedef std::chrono::high_resolution_clock MainClock;
 static const double BUFFER_DURATION = double(SAMPLES_PER_BUFFER) / SAMPLE_RATE;
 
 static const MainClock::duration WORKER_INTERVAL = std::chrono::duration_cast<MainClock::duration>(
-    std::chrono::duration<double>(BUFFER_DURATION)
+    std::chrono::duration<double>(BUFFER_DURATION / 2)
 );
 
 AudioStream::AudioStream() :
@@ -26,20 +26,23 @@ AudioStream::AudioStream() :
 
 void AudioStream::playEvent(const SoundEvent& soundEvent)
 {
+    m_nbSounds++;
     std::unique_lock<std::mutex> lock(m_soundsMutex);
-    m_activeSounds.emplace_front(soundEvent, BUFFER_DURATION + getTime());
+    m_activeSounds.emplace_front(soundEvent, BUFFER_DURATION * BUFFER_POOL_SIZE + getTime());
 }
 
 void AudioStream::playEventAt(const SoundEvent& soundEvent, double seconds)
 {
+    m_nbSounds++;
     std::unique_lock<std::mutex> lock(m_soundsMutex);
-    m_activeSounds.emplace_front(soundEvent, BUFFER_DURATION + seconds);
+    m_activeSounds.emplace_front(soundEvent, BUFFER_DURATION * BUFFER_POOL_SIZE + seconds);
 }
 
 void AudioStream::playEventIn(const SoundEvent& soundEvent, double seconds)
 {
+    m_nbSounds++;
     std::unique_lock<std::mutex> lock(m_soundsMutex);
-    m_activeSounds.emplace_front(soundEvent, BUFFER_DURATION + getTime() + seconds);
+    m_activeSounds.emplace_front(soundEvent, BUFFER_DURATION * BUFFER_POOL_SIZE + getTime() + seconds);
 }
 
 const int16_t* AudioStream::getNextBuffer()
@@ -64,6 +67,11 @@ double AudioStream::getTime()
     return (now - m_timeStreamStarted) / 10e8;
 }
 
+size_t AudioStream::getNbSounds() const
+{
+    return m_nbSounds;
+}
+
 AudioStream::~AudioStream()
 {
     delete[] m_bufferPoolData;
@@ -77,11 +85,14 @@ AudioStream::TimedSoundEvent::TimedSoundEvent(const SoundEvent& p_event, double 
     event(p_event),
     timeToPlay(p_time) {}
 
+#include <cstring>
+
 void AudioStream::i_bufferingThread()
 {
-    #define F(x) (1000.0 / (10 * double(x) / SAMPLE_RATE + 1))
-    #define G(x) (1.0 / (10.0 * double(x) / SAMPLE_RATE + 1))
-    int j = 1;
+    double bufferTime = -BUFFER_DURATION * 0.05;
+    float* workBuffer = new float[SAMPLES_PER_BUFFER];
+    size_t sampleCount = 0;
+
     while(!m_exitThread)
     {
         {
@@ -90,24 +101,53 @@ void AudioStream::i_bufferingThread()
             {
                 Buffer& currentBuffer = *m_inputBufferQueue.front();
 
+                memset(workBuffer, 0, SAMPLES_PER_BUFFER * sizeof(float));
+
+                {
+                    std::unique_lock<std::mutex> lock1(m_soundsMutex);
+
+                    for(TimedSoundEvent& sound : m_activeSounds)
+                    {
+                        if(!sound.hasStarted && bufferTime < sound.timeToPlay && sound.timeToPlay < bufferTime + BUFFER_DURATION)
+                        {
+                            sound.hasStarted = true;
+                            int sampleStart = (sound.timeToPlay - bufferTime) * SAMPLE_RATE;
+                            sound.event.audioProducer->addOntoSamples(workBuffer + sampleStart, SAMPLES_PER_BUFFER - sampleStart);
+                            continue;
+                        }
+
+                        if(sound.hasStarted)
+                        {
+                            sound.event.audioProducer->addOntoSamples(workBuffer, SAMPLES_PER_BUFFER);
+                        }
+                    }
+    
+                    m_activeSounds.remove_if([&](TimedSoundEvent& e)
+                    {
+                        if(e.event.audioProducer->hasExpired())
+                        {
+                            m_nbSounds--;
+                            delete e.event.audioProducer;
+                            return true;
+                        }
+                        return false;
+                    });
+                }
+
                 for(int i = 0; i < SAMPLES_PER_BUFFER; i++)
                 {
-                    float noise = 2.0f * float(rand()) / RAND_MAX - 1.0f;
-                    currentBuffer.data[i] = sin((j++ * 3.1415 * (80 + F(j * 10))) / 44100) * 30000 * G(j * 6);
-                    currentBuffer.data[i] += noise * 5000 * G(j * 200);
-
-                    if(double(j) / SAMPLE_RATE > 0.5 / getTime())
-                    {
-                        j = 1;
-                    }
+                    currentBuffer.data[i] = workBuffer[i] * 32767;
                 }
 
                 m_outputBufferQueue.push(&currentBuffer);
                 m_inputBufferQueue.pop();
+                bufferTime += BUFFER_DURATION;
             }
         }
         
-        std::unique_lock<std::mutex> lock1(m_threadMutex);
-        m_bufferingThreadCV.wait_for(lock1, WORKER_INTERVAL);
+        std::unique_lock<std::mutex> lock2(m_threadMutex);
+        m_bufferingThreadCV.wait_for(lock2, WORKER_INTERVAL);
     }
+
+    delete[] workBuffer;
 }

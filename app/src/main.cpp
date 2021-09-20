@@ -4,7 +4,7 @@
 #include <engmsc-app/MainScreen.hpp>
 #include <engmsc-app/FlywheelRenderer.hpp>
 
-#include <engmsc/al/ALAudioContext.hpp>
+
 
 #include <iostream>
 
@@ -21,10 +21,6 @@ int main()
     mainScreen = MainScreen::getScreen();
 
     FlywheelRenderer::initialize();
-    AudioStream stream;
-    ALAudioContext ctx;
-    ctx.initContext();
-    ctx.addStream(stream);
 
     while(!glfwWindowShouldClose(glfwWindow))
     {
@@ -38,7 +34,7 @@ int main()
         glfwSwapBuffers(glfwWindow);
     }
 
-    ctx.destroyContext();
+    MainScreen::getScreen()->destroyAudioContext();
     glfwTerminate();
     return 0;
 }
