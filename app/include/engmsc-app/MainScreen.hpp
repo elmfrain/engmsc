@@ -14,10 +14,21 @@ private:
         nanogui::TextBox* coolantTempField;
         nanogui::TextBox* nbSoundField;
     };
+    struct EngineConfig
+    {
+        nanogui::Slider* nbCylindersSlider;
+    };
     StatusDisplay statusDisplay;
+    EngineConfig engineConfig;
 
     AudioStream audStream;
     ALAudioContext audCtx;
+    double elapse;
+    double interval = 1.0;
+    double prevInterval;
+    int cylIndex;
+    int nbCyl = 1;
+    float volumes[16] = { 0.50f, 0.92f, 1.0f, 0.72f, 0.71f, 0.51f, 0.92f, 0.68f, 0.73f, 0.72f, 0.77f, 0.95f, 0.63f, 0.62f, 0.59f, 0.56f };
 
     MainScreen();
     void setupGLFWcallbacks();

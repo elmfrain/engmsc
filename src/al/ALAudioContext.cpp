@@ -10,7 +10,7 @@ static const int BUFFER_SIZE_BYTES = SAMPLES_PER_BUFFER * sizeof(int16_t);
 static const double BUFFER_DURATION = double(SAMPLES_PER_BUFFER) / SAMPLE_RATE;
 
 static const MainClock::duration WORKER_INTERVAL = std::chrono::duration_cast<MainClock::duration>(
-    std::chrono::duration<double>(BUFFER_DURATION / 2.0)
+    std::chrono::duration<double>(BUFFER_DURATION / 4.0)
 );
 
 bool ALAudioContext::initContext(void* userData)

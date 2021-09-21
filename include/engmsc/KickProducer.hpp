@@ -9,7 +9,7 @@ class KickProducer : public IAudioProducer
 {
 public:
     virtual size_t produceSamples(float* buffer, size_t bufferSize);
-    virtual size_t addOntoSamples(float* buffer, size_t bufferSize);
+    virtual size_t addOntoSamples(float* buffer, size_t bufferSize, float gain = 1.0f);
     virtual double getDuration() const;
     virtual bool hasExpired() const;
 private:

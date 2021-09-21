@@ -19,7 +19,7 @@ size_t KickProducer::produceSamples(float* buffer, size_t nbSamples)
     return nbSamples;
 }
 
-size_t KickProducer::addOntoSamples(float* buffer, size_t nbSamples)
+size_t KickProducer::addOntoSamples(float* buffer, size_t nbSamples, float gain)
 {
     if(double(m_samplePos + nbSamples) / SAMPLE_RATE > getDuration())
     {
@@ -29,7 +29,7 @@ size_t KickProducer::addOntoSamples(float* buffer, size_t nbSamples)
 
     for(size_t i = 0; i < nbSamples; i++)
     {
-        buffer[i] += genSample();
+        buffer[i] += genSample() * gain;
         m_samplePos++;
     }
 
@@ -52,8 +52,8 @@ bool KickProducer::hasExpired() const
 float KickProducer::genSample() const
 {
     float noise = 2.0f * float(rand()) / RAND_MAX - 1.0f;
-    float sample = sin((m_samplePos * 3.1415 * (80 + F(m_samplePos * 10))) / 44100) * 0.92f * G(m_samplePos * 6);
-    sample += noise * 0.15f * G(m_samplePos * 20);
+    float sample = sin((m_samplePos * 3.1415 * (80 + F(m_samplePos * 10))) / 44100) * 0.276f * G(m_samplePos * 6);
+    sample += noise * 0.045f * G(m_samplePos * 20);
 
     return sample;
 }

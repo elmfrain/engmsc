@@ -7,7 +7,7 @@ typedef std::chrono::high_resolution_clock MainClock;
 static const double BUFFER_DURATION = double(SAMPLES_PER_BUFFER) / SAMPLE_RATE;
 
 static const MainClock::duration WORKER_INTERVAL = std::chrono::duration_cast<MainClock::duration>(
-    std::chrono::duration<double>(BUFFER_DURATION / 2)
+    std::chrono::duration<double>(BUFFER_DURATION / 4.0)
 );
 
 AudioStream::AudioStream() :
@@ -89,7 +89,7 @@ AudioStream::TimedSoundEvent::TimedSoundEvent(const SoundEvent& p_event, double 
 
 void AudioStream::i_bufferingThread()
 {
-    double bufferTime = -BUFFER_DURATION * 0.05;
+    double bufferTime = -BUFFER_DURATION * 0.1;
     float* workBuffer = new float[SAMPLES_PER_BUFFER];
     size_t sampleCount = 0;
 
@@ -112,13 +112,13 @@ void AudioStream::i_bufferingThread()
                         {
                             sound.hasStarted = true;
                             int sampleStart = (sound.timeToPlay - bufferTime) * SAMPLE_RATE;
-                            sound.event.audioProducer->addOntoSamples(workBuffer + sampleStart, SAMPLES_PER_BUFFER - sampleStart);
+                            sound.event.audioProducer->addOntoSamples(workBuffer + sampleStart, SAMPLES_PER_BUFFER - sampleStart, sound.event.volume);
                             continue;
                         }
 
                         if(sound.hasStarted)
                         {
-                            sound.event.audioProducer->addOntoSamples(workBuffer, SAMPLES_PER_BUFFER);
+                            sound.event.audioProducer->addOntoSamples(workBuffer, SAMPLES_PER_BUFFER, sound.event.volume);
                         }
                     }
     

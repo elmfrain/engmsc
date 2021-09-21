@@ -38,7 +38,9 @@ namespace Callbacks
     }
 }
 
-MainScreen::MainScreen()
+MainScreen::MainScreen() :
+    elapse(audStream.getTime()),
+    prevInterval(interval)
 {
     initialize(glfwWindow, false);
     setupGLFWcallbacks();
@@ -156,18 +158,20 @@ int MainScreen::setupEngineConfigWindow(int y)
     window->set_position(Vector2i(0, y));
     window->set_layout(new GridLayout(Orientation::Horizontal, 3, Alignment::Middle, 5, 5));
     new Label(window, "Cylinders");
-    Slider* slider = new Slider(window);
-    slider->set_fixed_width(160);
+    engineConfig.nbCylindersSlider = new Slider(window);
+    engineConfig.nbCylindersSlider->set_fixed_width(160);
     TextBox* textBox = new TextBox(window, "1");
     textBox->set_fixed_width(100);
     textBox->set_alignment(TextBox::Alignment::Left);
-    slider->set_callback([slider, textBox](float value) 
+    int* o = &nbCyl;
+    engineConfig.nbCylindersSlider->set_callback([textBox, o](float value) 
     {
         int cylinders = int(value * 15 + 1);
         textBox->set_value(std::to_string(cylinders));
+        *o = cylinders;
     });
     new Label(window, "Rev Limit");
-    slider = new Slider(window);
+    Slider* slider = new Slider(window);
     slider->set_fixed_width(160);
     slider->set_value(0.591f);
     textBox = new TextBox(window, "7500");
@@ -223,7 +227,7 @@ int MainScreen::setupKickConfigWindow()
     });
 
     statusDisplay.nbSoundField = new TextBox(window);
-    statusDisplay.nbSoundField->set_units("sounds");
+    statusDisplay.nbSoundField->set_units("s");
 
     return 0;
 }
@@ -233,6 +237,8 @@ void MainScreen::destroyAudioContext()
     audCtx.destroyContext();
 }
 
+#include <algorithm>
+
 void MainScreen::refreshValues()
 {
     FlywheelRenderer::Engine* engine = FlywheelRenderer::getEngine();
@@ -241,7 +247,23 @@ void MainScreen::refreshValues()
     statusDisplay.coolantTempField->set_value(std::to_string((int) engine->coolantTemperature));
     statusDisplay.nbSoundField->set_value(std::to_string(audStream.getNbSounds()));
 
-    
+    double now = audStream.getTime();
+    double rpm = std::max(1.0, engine->rpm);
+    //int nbCyl = 2;//int(engineConfig.nbCylindersSlider->value() * 15 + 1);
+    prevInterval = interval;
+    interval = 2.0 / (rpm / 60.0);
+    double timeRemaining = elapse - now;
+    double newTimeRemaining = timeRemaining * (interval / prevInterval);
+    elapse -= timeRemaining - newTimeRemaining;
+
+    while(elapse < now)
+    {
+        elapse += interval / nbCyl;
+        cylIndex = ++cylIndex % nbCyl;
+        if(engine->rpm < 1.0) continue;
+
+        audStream.playEventAt(SoundEvent(new KickProducer(), volumes[cylIndex]), elapse - 0.06);
+    }
 }
 
 void MainScreen::setGLFWwindow(GLFWwindow* window)
