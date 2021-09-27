@@ -11,6 +11,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <iir/Butterworth.h>
+
 static const char* vecShaderCode = 
     "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
@@ -68,6 +70,8 @@ static GLuint u_angle = 0;
 static GLuint u_angleSpeed = 0;
 static GLuint shaderProgram = 0;
 
+static Iir::Butterworth::LowPass lowPass;
+
 static void setupShaders();
 static void setupMesh();
 static void setupFramebuffer();
@@ -80,6 +84,7 @@ void FlywheelRenderer::initialize()
     setupShaders();
     setupMesh();
     setupFramebuffer();
+    lowPass.setup(60.0, 5.0);
 }
 
 void FlywheelRenderer::draw()
@@ -248,26 +253,74 @@ void setupFramebuffer()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+static double errorIntegration = 0.0;
+static double prevError = 0.0;
+#define P_GAIN 0.01
+#define I_GAIN 0.05
+#define D_GAIN 0.01
+
+static double idlePID(double rpmTarget, double rpm)
+{
+    double output = 0.0;
+    double error = rpmTarget - rpm;
+
+    //Porportional
+    output += error * P_GAIN;
+
+    //Integral
+    errorIntegration = std::max(-30.0, std::min(errorIntegration + 0.016 * error, 30.0));
+    output += errorIntegration * I_GAIN;
+
+    //Derivitive
+    output += (error - prevError) * D_GAIN;
+    prevError = error;
+
+    return std::max(0.0, std::min(output, 1.0));
+}
+
+#define ROOM_TEMPERATURE 21.0
+#define MIN_THROTTLE 0.01
+
 void updateEngine()
 {
+    //Calculate Target Rpm
+    engine->idleTarget = std::max(680.0, -8.0 * (engine->coolantTemperature - 60.0) + 680.0);
+
+    //Random fluctuations in engine
+    double rnd = lowPass.filter(2.0 * (double(rand()) / RAND_MAX) - 1.0);
+
+    //Idle control valve PID
+    engine->idleThrottle = idlePID(engine->idleTarget, engine->rpm);
+
+    //double powerBand = 1.0 - pow(engine->rpm - 0.8 * engine->revLimit, 2.0) / pow(0.8 * engine->revLimit, 2.0);
+
+    //Air Fuel Mass per second calculation
+    double totalThrottle = std::max(MIN_THROTTLE, engine->throttle + engine->idleThrottle * 0.15);
+    double allowableAirFlow = 1.0 - pow(totalThrottle - 1.0, 4.0);
+    engine->airFuelMassIntake = (engine->rpm * allowableAirFlow) / 50.0;
+
+    //Disable Spark When limiter is activated
     if(!engine->limiterOn)
     {
-        engine->angleSpeed += engine->throttle * 30;
+        engine->angleSpeed += (engine->airFuelMassIntake) / (3.2 + 0.4 * rnd);
     }
 
-	if ((engine->idle <= engine->angleSpeed * 10.0) && (engine->angleSpeed * 10.0 <= engine->idle + engine->idleTolerance))
-	{
-		engine->angleSpeed -= ((10.0 * pow(engine->angleSpeed * 10.0 - engine->idle, 2.0)) / pow(engine->idleTolerance, 2));
-	}
+    //Calculate temperature
+    engine->coolantTemperature += engine->rpm * 1.43e-6 * (7500.0 / engine->revLimit);
+    if(engine->coolantTemperature > 71.0) //Open thermostat at 71c
+        engine->coolantTemperature -= (engine->coolantTemperature - ROOM_TEMPERATURE) * 1.11e-4;
     else
-    {
-    	engine->angleSpeed -= 10.0;
-    }
+        engine->coolantTemperature -= (engine->coolantTemperature - ROOM_TEMPERATURE) * 2.78e-5;
 
-	engine->angleSpeed = engine->angleSpeed < 0.0 ? 0.0 : engine->angleSpeed;
+    //Engine drag
+    engine->angleSpeed -= (39.0 * pow(engine->rpm, 2.0)) / pow(engine->revLimit, 2.0) + 0.9;    
+
+	engine->angleSpeed = std::max(0.0, engine->angleSpeed);
 	engine->angle += engine->angleSpeed;
-	if (engine->angleSpeed * 10.0 > engine->revLimiter) engine->limiterOn = true;
-	if (engine->limiterOn && engine->angleSpeed * 10.0 < engine->revLimiter - 300.0) engine->limiterOn = false;
-	if (engine->angle > 360) { int a = (360 / (int)engine->angle) * 360; engine->angle -= a; }
-	engine->rpm = engine->angleSpeed * 10.0;
+    engine->rpm = engine->angleSpeed * 10.0;
+
+    if (engine->rpm > engine->revLimit) engine->limiterOn = true;
+	else if (engine->limiterOn && engine->rpm < engine->revLimit - 800.0) engine->limiterOn = false;
+
+    if (engine->angle > 360) { int a = (360 / (int)engine->angle) * 360; engine->angle -= a; }
 }

@@ -28,6 +28,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);        
         FlywheelRenderer::draw();
         mainScreen->refreshValues();
+        mainScreen->updateEngineSounds();
         mainScreen->draw_widgets();
 
         glfwPollEvents();

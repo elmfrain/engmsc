@@ -19,6 +19,10 @@ namespace Callbacks
     static void onKey(GLFWwindow*, int key, int scancode, int action, int mods)
     {
         MainScreen::getScreen()->key_callback_event(key, scancode, action, mods);
+        if(key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
+        {
+            FlywheelRenderer::getEngine()->angleSpeed = 100.0;
+        }
     }
     static void onChar(GLFWwindow*, unsigned int codepoint)
     {
@@ -49,8 +53,8 @@ MainScreen::MainScreen() :
     audCtx.addStream(audStream);
 
     setupEngineStatusWindow(0);
-    setupEngineInputWindow(100);
-    setupEngineConfigWindow(233);
+    setupEngineInputWindow(200);
+    setupEngineConfigWindow(433);
     setupKickConfigWindow();
 
     set_visible(true);
@@ -88,6 +92,22 @@ int MainScreen::setupEngineStatusWindow(int y)
     statusDisplay.coolantTempField->set_units("°C");
     statusDisplay.coolantTempField->set_fixed_width(120);
     statusDisplay.coolantTempField->set_alignment(TextBox::Alignment::Left);
+    new Label(window, "Idle Valve Steps");
+    statusDisplay.idleThrottleField = new TextBox(window);
+    statusDisplay.idleThrottleField->set_value("0");
+    statusDisplay.idleThrottleField->set_units("steps");
+    statusDisplay.idleThrottleField->set_fixed_width(120);
+    statusDisplay.idleThrottleField->set_alignment(TextBox::Alignment::Left);
+    new Label(window, "Air/Fuel Mass Intake");
+    statusDisplay.airFuelMassField = new TextBox(window);
+    statusDisplay.airFuelMassField->set_value("0.0");
+    statusDisplay.airFuelMassField->set_units("g/s");
+    statusDisplay.airFuelMassField->set_fixed_width(120);
+    statusDisplay.airFuelMassField->set_alignment(TextBox::Alignment::Left);
+    new Label(window, "Limiter");
+    statusDisplay.limiterField = new CheckBox(window);
+    statusDisplay.limiterField->set_caption("");
+    statusDisplay.limiterField->set_checked(false);
     
     return window->height() + window->position().y();
 }
@@ -144,6 +164,9 @@ int MainScreen::setupEngineInputWindow(int y)
         slider->set_value(0.0f);
         textBox->set_value("0");
     });
+    Button* button = new Button(window);
+    button->set_caption("Quick Start");
+    button->set_callback([engine](){ engine->angleSpeed = 100.0; });
 
     return window->height() + window->position().y();
 }
@@ -182,7 +205,7 @@ int MainScreen::setupEngineConfigWindow(int y)
     {
         double v = 11000.0 * value + 1000.0;
         textBox->set_value(std::to_string((int) v));
-        engine->revLimiter = v;
+        engine->revLimit = v;
     });
 
     return window->height() + window->position().y();
@@ -197,33 +220,37 @@ int MainScreen::setupKickConfigWindow()
     window->set_position(Vector2i(400, 0));
 
     new Label(window, "Level");
-    Slider* slider = new Slider(window);
-    slider->set_fixed_width(160);
+    Slider* level = new Slider(window);
+    level->set_fixed_width(160);
+    level->set_value(1.0f);
 
     new Label(window, "Pitch");
-    slider = new Slider(window);
-    slider->set_fixed_width(160);
+    Slider* pitch = new Slider(window);
+    pitch->set_fixed_width(160);
 
     new Label(window, "EG Attack");
-    slider = new Slider(window);
-    slider->set_fixed_width(160);
+    Slider* attack = new Slider(window);
+    attack->set_fixed_width(160);
 
     new Label(window, "EG Release");
-    slider = new Slider(window);
-    slider->set_fixed_width(160);
+    Slider* release = new Slider(window);
+    release->set_fixed_width(160);
 
     new Label(window, "Mod Amount");
-    slider = new Slider(window);
-    slider->set_fixed_width(160);
+    Slider* modAmount = new Slider(window);
+    modAmount->set_fixed_width(160);
 
     new Label(window, "Mod Rate");
-    slider = new Slider(window);
-    slider->set_fixed_width(160);
+    Slider* modRate = new Slider(window);
+    modRate->set_fixed_width(160);
 
     Button* button = new Button(window, "Kick");
-    button->set_callback([&]()
+    button->set_callback([=]()
     {
-        audStream.playEvent(SoundEvent(new KickProducer()));
+        audStream.playEvent
+        (
+            SoundEvent(new KickProducer(1.0f))
+        );
     });
 
     statusDisplay.nbSoundField = new TextBox(window);
@@ -232,24 +259,14 @@ int MainScreen::setupKickConfigWindow()
     return 0;
 }
 
-void MainScreen::destroyAudioContext()
-{
-    audCtx.destroyContext();
-}
-
 #include <algorithm>
 
-void MainScreen::refreshValues()
+void MainScreen::updateEngineSounds()
 {
     FlywheelRenderer::Engine* engine = FlywheelRenderer::getEngine();
 
-    statusDisplay.rpmField->set_value(std::to_string((int) engine->rpm));
-    statusDisplay.coolantTempField->set_value(std::to_string((int) engine->coolantTemperature));
-    statusDisplay.nbSoundField->set_value(std::to_string(audStream.getNbSounds()));
-
     double now = audStream.getTime();
     double rpm = std::max(1.0, engine->rpm);
-    //int nbCyl = 2;//int(engineConfig.nbCylindersSlider->value() * 15 + 1);
     prevInterval = interval;
     interval = 2.0 / (rpm / 60.0);
     double timeRemaining = elapse - now;
@@ -262,8 +279,29 @@ void MainScreen::refreshValues()
         cylIndex = ++cylIndex % nbCyl;
         if(engine->rpm < 1.0) continue;
 
-        audStream.playEventAt(SoundEvent(new KickProducer(), volumes[cylIndex]), elapse - 0.06);
+        double level = engine->throttle * 0.2 + 0.8;
+        KickProducer* p = new KickProducer(!engine->limiterOn ? engine->throttle : 0.0f, std::max(0.0, std::min(rpm / 4000.0, 1.0)));
+        audStream.playEventAt(SoundEvent(p, level), elapse + interval * volumes[cylIndex] * 0.1);
     }
+}
+
+void MainScreen::destroyAudioContext()
+{
+    audCtx.destroyContext();
+}
+
+void MainScreen::refreshValues()
+{
+    FlywheelRenderer::Engine* engine = FlywheelRenderer::getEngine();
+    char tempString[256] = { 0 };
+
+    statusDisplay.rpmField->set_value(std::to_string((int) engine->rpm));
+    statusDisplay.coolantTempField->set_value(std::to_string((int) engine->coolantTemperature));
+    statusDisplay.idleThrottleField->set_value(std::to_string(int(engine->idleThrottle * 250)));
+    snprintf(tempString, sizeof(tempString), "%.2f", engine->airFuelMassIntake);
+    statusDisplay.airFuelMassField->set_value(std::string(tempString));
+    statusDisplay.limiterField->set_checked(engine->limiterOn);
+    statusDisplay.nbSoundField->set_value(std::to_string(audStream.getTime() - audStream.m_bufferTime));
 }
 
 void MainScreen::setGLFWwindow(GLFWwindow* window)

@@ -7,3 +7,6 @@
 [submodule "app/dep/glm"]
 	path = app/dep/glm
 	url = https://github.com/g-truc/glm.git
+[submodule "dep/iir1"]
+	path = dep/iir1
+	url = https://github.com/berndporr/iir1.git

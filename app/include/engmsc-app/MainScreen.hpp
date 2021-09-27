@@ -12,6 +12,9 @@ private:
     {
         nanogui::TextBox* rpmField;
         nanogui::TextBox* coolantTempField;
+        nanogui::TextBox* idleThrottleField;
+        nanogui::TextBox* airFuelMassField;
+        nanogui::CheckBox* limiterField;
         nanogui::TextBox* nbSoundField;
     };
     struct EngineConfig
@@ -39,6 +42,7 @@ private:
     int setupKickConfigWindow();
 
 public:
+    void updateEngineSounds();
     void destroyAudioContext();
     void refreshValues();
 

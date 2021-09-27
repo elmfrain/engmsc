@@ -43,15 +43,13 @@ void ALAudioContext::addStream(AudioStream& audioStream)
     alGenSources(1, &streamChannel.alSource);
     alGenBuffers(BUFFER_POOL_SIZE, streamChannel.alBufferPool);
 
-    int16_t* blankBuffer = new int16_t[SAMPLES_PER_BUFFER];
-    memset(blankBuffer, 0, BUFFER_SIZE_BYTES);
     for(ALuint buffer : streamChannel.alBufferPool)
     {
-        alBufferData(buffer, AL_FORMAT_MONO16, blankBuffer, BUFFER_SIZE_BYTES, SAMPLE_RATE);
+        alBufferData(buffer, AL_FORMAT_MONO16, audioStream.getNextBuffer(), BUFFER_SIZE_BYTES, SAMPLE_RATE);
     }
     alSourceQueueBuffers(streamChannel.alSource, BUFFER_POOL_SIZE, streamChannel.alBufferPool);
     alSourcePlay(streamChannel.alSource);
-    delete[] blankBuffer;
+    audioStream.resartStream();
 
     std::unique_lock<std::mutex> lock(m_streamListMutex);
     m_activeStreams.push_front(streamChannel);
@@ -105,7 +103,7 @@ void ALAudioContext::i_streamWorkerThread()
                 int buffersProcessed = 0;
                 alGetSourcei(streamChannel.alSource, AL_BUFFERS_PROCESSED, &buffersProcessed);
 
-                if(buffersProcessed <= 0 || !streamChannel.audioStream->hasNextReady()) continue;
+                if(buffersProcessed <= 0) continue;
 
                 while(buffersProcessed--)
                 {

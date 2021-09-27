@@ -7,15 +7,15 @@
 #include <engmsc/SoundEvent.hpp>
 
 #include <forward_list>
-
-#include <mutex>
 #include <queue>
+
 #include <thread>
+#include <mutex>
 #include <condition_variable>
 
 #define SAMPLE_RATE 44100
 #define SAMPLES_PER_BUFFER 1024
-#define BUFFER_POOL_SIZE 3
+#define BUFFER_POOL_SIZE 4
 
 class AudioStream
 {
@@ -26,9 +26,9 @@ public:
     void playEventAt(const SoundEvent& event, double seconds);
     void playEventIn(const SoundEvent& event, double seconds);
     const int16_t* getNextBuffer();
-    bool hasNextReady();
     double getTime();
     size_t getNbSounds() const;
+    void resartStream();
 
     AudioStream(const AudioStream& copy) = delete;
     AudioStream operator=(const AudioStream& copy) = delete;
@@ -53,21 +53,18 @@ private:
     std::mutex m_soundsMutex;
     std::forward_list<TimedSoundEvent> m_activeSounds;
 
-    std::mutex m_bufferQueueMutex;
     std::queue<Buffer*> m_outputBufferQueue;
     std::queue<Buffer*> m_inputBufferQueue;
 
     uint16_t* const m_bufferPoolData;
     Buffer m_bufferPool[BUFFER_POOL_SIZE];
 
-    const size_t m_timeStreamStarted;
+    size_t m_timeStreamStarted;
 
-    //Buffering thread variables
-    std::mutex m_threadMutex;
-    std::condition_variable m_bufferingThreadCV;
-    bool m_exitThread = false;
-    std::thread* m_bufferingThread;
-    void i_bufferingThread();
+    float* m_workBuffer;
+    double m_bufferTime;
+    void i_fillNextBuffers();
+    friend class MainScreen;
 };
 
 #endif

@@ -47,6 +47,12 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "bit": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "condition_variable": "cpp",
+        "ctime": "cpp",
+        "forward_list": "cpp",
+        "ratio": "cpp",
+        "mutex": "cpp",
+        "thread": "cpp"
     }
 }

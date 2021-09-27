@@ -10,9 +10,13 @@ static const MainClock::duration WORKER_INTERVAL = std::chrono::duration_cast<Ma
     std::chrono::duration<double>(BUFFER_DURATION / 4.0)
 );
 
+static const double COMPENSAION_DELAY = BUFFER_DURATION * BUFFER_POOL_SIZE * 1.2;
+
 AudioStream::AudioStream() :
     m_bufferPoolData(new uint16_t[SAMPLES_PER_BUFFER * BUFFER_POOL_SIZE]),
-    m_timeStreamStarted(MainClock::now().time_since_epoch().count())
+    m_timeStreamStarted(MainClock::now().time_since_epoch().count()),
+    m_workBuffer(new float[SAMPLES_PER_BUFFER]),
+    m_bufferTime(-COMPENSAION_DELAY)
 {
     for(int i = 0; i < BUFFER_POOL_SIZE; i++)
     {
@@ -20,45 +24,41 @@ AudioStream::AudioStream() :
         m_bufferPool[i].data = m_bufferPoolData + SAMPLES_PER_BUFFER * i;
         m_inputBufferQueue.push(&m_bufferPool[i]);
     }
-
-    m_bufferingThread = new std::thread(&AudioStream::i_bufferingThread, this);
 }
 
 void AudioStream::playEvent(const SoundEvent& soundEvent)
 {
     m_nbSounds++;
     std::unique_lock<std::mutex> lock(m_soundsMutex);
-    m_activeSounds.emplace_front(soundEvent, BUFFER_DURATION * BUFFER_POOL_SIZE + getTime());
+    m_activeSounds.emplace_front(soundEvent, getTime());
 }
 
 void AudioStream::playEventAt(const SoundEvent& soundEvent, double seconds)
 {
     m_nbSounds++;
     std::unique_lock<std::mutex> lock(m_soundsMutex);
-    m_activeSounds.emplace_front(soundEvent, BUFFER_DURATION * BUFFER_POOL_SIZE + seconds);
+    m_activeSounds.emplace_front(soundEvent, seconds);
 }
 
 void AudioStream::playEventIn(const SoundEvent& soundEvent, double seconds)
 {
     m_nbSounds++;
     std::unique_lock<std::mutex> lock(m_soundsMutex);
-    m_activeSounds.emplace_front(soundEvent, BUFFER_DURATION * BUFFER_POOL_SIZE + getTime() + seconds);
+    m_activeSounds.emplace_front(soundEvent, getTime() + seconds);
 }
 
 const int16_t* AudioStream::getNextBuffer()
 {
-    std::unique_lock<std::mutex> lock(m_bufferQueueMutex);
+    if(m_outputBufferQueue.empty())
+    {
+        i_fillNextBuffers();
+    }
+
     const uint16_t* nextData = m_outputBufferQueue.front()->data;
     m_inputBufferQueue.push(m_outputBufferQueue.front());
     m_outputBufferQueue.pop();
-    m_bufferingThreadCV.notify_one();
-    return (const int16_t*) nextData;
-}
 
-bool AudioStream::hasNextReady()
-{
-    m_bufferingThreadCV.notify_one();
-    return !m_outputBufferQueue.empty();
+    return (const int16_t*) nextData;
 }
 
 double AudioStream::getTime()
@@ -75,10 +75,7 @@ size_t AudioStream::getNbSounds() const
 AudioStream::~AudioStream()
 {
     delete[] m_bufferPoolData;
-    m_exitThread = true;
-    m_bufferingThreadCV.notify_one();
-    m_bufferingThread->join();
-    delete m_bufferingThread;
+    delete[] m_workBuffer;
 }
 
 AudioStream::TimedSoundEvent::TimedSoundEvent(const SoundEvent& p_event, double p_time) :
@@ -87,67 +84,64 @@ AudioStream::TimedSoundEvent::TimedSoundEvent(const SoundEvent& p_event, double 
 
 #include <cstring>
 
-void AudioStream::i_bufferingThread()
+void AudioStream::i_fillNextBuffers()
 {
-    double bufferTime = -BUFFER_DURATION * 0.1;
-    float* workBuffer = new float[SAMPLES_PER_BUFFER];
-    size_t sampleCount = 0;
-
-    while(!m_exitThread)
+    while(m_inputBufferQueue.size() > 0)
     {
+        Buffer& currentBuffer = *m_inputBufferQueue.front();
+        memset(m_workBuffer, 0, SAMPLES_PER_BUFFER * sizeof(float));
+
         {
-            std::unique_lock<std::mutex> lock0(m_bufferQueueMutex);
-            while(m_inputBufferQueue.size() > 0)
+            std::unique_lock<std::mutex> lock1(m_soundsMutex);
+            for(TimedSoundEvent& sound : m_activeSounds)
             {
-                Buffer& currentBuffer = *m_inputBufferQueue.front();
-
-                memset(workBuffer, 0, SAMPLES_PER_BUFFER * sizeof(float));
-
+                if(!sound.hasStarted && m_bufferTime < sound.timeToPlay && sound.timeToPlay < m_bufferTime + BUFFER_DURATION)
                 {
-                    std::unique_lock<std::mutex> lock1(m_soundsMutex);
-
-                    for(TimedSoundEvent& sound : m_activeSounds)
-                    {
-                        if(!sound.hasStarted && bufferTime < sound.timeToPlay && sound.timeToPlay < bufferTime + BUFFER_DURATION)
-                        {
-                            sound.hasStarted = true;
-                            int sampleStart = (sound.timeToPlay - bufferTime) * SAMPLE_RATE;
-                            sound.event.audioProducer->addOntoSamples(workBuffer + sampleStart, SAMPLES_PER_BUFFER - sampleStart, sound.event.volume);
-                            continue;
-                        }
-
-                        if(sound.hasStarted)
-                        {
-                            sound.event.audioProducer->addOntoSamples(workBuffer, SAMPLES_PER_BUFFER, sound.event.volume);
-                        }
-                    }
-    
-                    m_activeSounds.remove_if([&](TimedSoundEvent& e)
-                    {
-                        if(e.event.audioProducer->hasExpired())
-                        {
-                            m_nbSounds--;
-                            delete e.event.audioProducer;
-                            return true;
-                        }
-                        return false;
-                    });
+                    sound.hasStarted = true;
+                    int sampleStart = (sound.timeToPlay - m_bufferTime) * SAMPLE_RATE;
+                    sound.event.audioProducer->addOntoSamples(m_workBuffer + sampleStart, SAMPLES_PER_BUFFER - sampleStart, sound.event.volume);
+                    continue;
                 }
-
-                for(int i = 0; i < SAMPLES_PER_BUFFER; i++)
+                else if(sound.hasStarted)
                 {
-                    currentBuffer.data[i] = workBuffer[i] * 32767;
+                    sound.event.audioProducer->addOntoSamples(m_workBuffer, SAMPLES_PER_BUFFER, sound.event.volume);
                 }
-
-                m_outputBufferQueue.push(&currentBuffer);
-                m_inputBufferQueue.pop();
-                bufferTime += BUFFER_DURATION;
+            }
+            m_activeSounds.remove_if([&](TimedSoundEvent& e)
+            {
+                if(e.event.audioProducer->hasExpired() || !e.hasStarted && e.timeToPlay < m_bufferTime)
+                {
+                    m_nbSounds--;
+                    delete e.event.audioProducer;
+                    return true;
+                }
+                return false;
+            });
+            if(getTime() - m_bufferTime > COMPENSAION_DELAY * 3.0)
+            {
+                m_activeSounds.clear();
+                m_bufferTime  = getTime() - COMPENSAION_DELAY;
             }
         }
-        
-        std::unique_lock<std::mutex> lock2(m_threadMutex);
-        m_bufferingThreadCV.wait_for(lock2, WORKER_INTERVAL);
-    }
 
-    delete[] workBuffer;
+        for(int i = 0; i < SAMPLES_PER_BUFFER; i++)
+        {
+            currentBuffer.data[i] = m_workBuffer[i] * 32767;
+        }
+        m_outputBufferQueue.push(&currentBuffer);
+        m_inputBufferQueue.pop();
+        m_bufferTime += BUFFER_DURATION;
+    }
+}
+
+void AudioStream::resartStream()
+{
+    m_timeStreamStarted = MainClock::now().time_since_epoch().count();
+    m_bufferTime = -COMPENSAION_DELAY;
+
+    while(m_outputBufferQueue.size() > 0)
+    {
+        m_inputBufferQueue.push(m_outputBufferQueue.front());
+        m_outputBufferQueue.pop();
+    }
 }

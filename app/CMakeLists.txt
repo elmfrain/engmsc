@@ -27,8 +27,10 @@ add_subdirectory("dep/nanogui")
 set_property(TARGET glfw glfw_objects nanogui PROPERTY FOLDER "dependencies")
 add_definitions(${NANOGUI_EXTRA_DEFS})
 
-#Add Subdirectory
-set(BUILD_SHARED_LIBS ON CACHE BOOL " " FORCE) #Assimp library is huge and it takes a while to link it statically
+#Add assimp
+#set(BUILD_SHARED_LIBS ON CACHE BOOL " " FORCE) #Assimp library is huge and it takes a while to link it statically
+set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF)
+set(ASSIMP_BUILD_PLY_IMPORTER ON) #Only enable ply importer
 set(ASSIMP_NO_EXPORT ON CACHE BOOL " " FORCE)
 set(ASSIMP_BUILD_TESTS OFF CACHE BOOL " " FORCE)
 set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL " " FORCE)
