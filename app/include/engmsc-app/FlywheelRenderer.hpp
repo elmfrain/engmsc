@@ -16,6 +16,7 @@ public:
         double angle = 0.0;
         double angleSpeed = 0.0;
         bool limiterOn = false;
+        bool isCranking = false;
     };
 
     static void initialize();

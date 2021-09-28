@@ -48,6 +48,7 @@ add_executable(${PROJECT_NAME}
     src/main.cpp
     src/MainScreen.cpp
     src/FlywheelRenderer.cpp
+    src/ExhaustConfigCanvas.cpp
 )
 
 #Link dependancies

@@ -130,7 +130,7 @@ FlywheelRenderer::Engine* FlywheelRenderer::getEngine()
     return engine;
 }
 
-void setupShaders()
+static void setupShaders()
 {
     char log[512];
 
@@ -303,6 +303,12 @@ void updateEngine()
     if(!engine->limiterOn)
     {
         engine->angleSpeed += (engine->airFuelMassIntake) / (3.2 + 0.4 * rnd);
+    }
+
+    //Cranking starter
+    if(engine->isCranking)
+    {
+        engine->angleSpeed += 0.05f * sinf32(engine->angle * 1.7453e-2) + 1.0f;
     }
 
     //Calculate temperature

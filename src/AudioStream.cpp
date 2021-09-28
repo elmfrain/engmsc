@@ -126,7 +126,7 @@ void AudioStream::i_fillNextBuffers()
 
         for(int i = 0; i < SAMPLES_PER_BUFFER; i++)
         {
-            currentBuffer.data[i] = m_workBuffer[i] * 32767;
+            currentBuffer.data[i] = std::max(-1.0f, std::min(m_workBuffer[i], 1.0f)) * 32760;
         }
         m_outputBufferQueue.push(&currentBuffer);
         m_inputBufferQueue.pop();

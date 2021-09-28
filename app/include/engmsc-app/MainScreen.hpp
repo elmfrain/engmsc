@@ -15,6 +15,7 @@ private:
         nanogui::TextBox* idleThrottleField;
         nanogui::TextBox* airFuelMassField;
         nanogui::CheckBox* limiterField;
+        nanogui::CheckBox* crankingField;
         nanogui::TextBox* nbSoundField;
     };
     struct EngineConfig
@@ -40,6 +41,7 @@ private:
     int setupEngineInputWindow(int y);
     int setupEngineConfigWindow(int y);
     int setupKickConfigWindow();
+    int setupExhaustOffsetsWindow();
 
 public:
     void updateEngineSounds();

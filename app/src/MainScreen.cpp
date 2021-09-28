@@ -1,5 +1,6 @@
 #include <engmsc-app/MainScreen.hpp>
 #include <engmsc-app/FlywheelRenderer.hpp>
+#include <engmsc-app/ExhaustConfigCanvas.hpp>
 
 #include <GLFW/glfw3.h>
 
@@ -19,9 +20,13 @@ namespace Callbacks
     static void onKey(GLFWwindow*, int key, int scancode, int action, int mods)
     {
         MainScreen::getScreen()->key_callback_event(key, scancode, action, mods);
-        if(key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
+        if(key == GLFW_KEY_SPACE && action == GLFW_PRESS)
         {
-            FlywheelRenderer::getEngine()->angleSpeed = 100.0;
+            FlywheelRenderer::getEngine()->isCranking = true;
+        }
+        else if(key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
+        {
+            FlywheelRenderer::getEngine()->isCranking = false;
         }
     }
     static void onChar(GLFWwindow*, unsigned int codepoint)
@@ -56,6 +61,7 @@ MainScreen::MainScreen() :
     setupEngineInputWindow(200);
     setupEngineConfigWindow(433);
     setupKickConfigWindow();
+    setupExhaustOffsetsWindow();
 
     set_visible(true);
     perform_layout();
@@ -108,6 +114,10 @@ int MainScreen::setupEngineStatusWindow(int y)
     statusDisplay.limiterField = new CheckBox(window);
     statusDisplay.limiterField->set_caption("");
     statusDisplay.limiterField->set_checked(false);
+    new Label(window, "Cranking");
+    statusDisplay.crankingField = new CheckBox(window);
+    statusDisplay.crankingField->set_caption("");
+    statusDisplay.crankingField->set_checked(false);
     
     return window->height() + window->position().y();
 }
@@ -119,7 +129,7 @@ int MainScreen::setupEngineInputWindow(int y)
     FlywheelRenderer::Engine* engine = FlywheelRenderer::getEngine();
 
     Window* window = new Window(this, "Engine Input");
-    window->set_position(Vector2i(0, y));
+    window->set_position(Vector2i(0, 230));
     window->set_layout(new GridLayout(Orientation::Horizontal, 3, Alignment::Middle, 5, 5));
 
     new Label(window, "Throttle");
@@ -164,9 +174,6 @@ int MainScreen::setupEngineInputWindow(int y)
         slider->set_value(0.0f);
         textBox->set_value("0");
     });
-    Button* button = new Button(window);
-    button->set_caption("Quick Start");
-    button->set_callback([engine](){ engine->angleSpeed = 100.0; });
 
     return window->height() + window->position().y();
 }
@@ -178,7 +185,7 @@ int MainScreen::setupEngineConfigWindow(int y)
     FlywheelRenderer::Engine* engine = FlywheelRenderer::getEngine();
 
     Window* window = new Window(this, "Engine Configuration");
-    window->set_position(Vector2i(0, y));
+    window->set_position(Vector2i(0, 378));
     window->set_layout(new GridLayout(Orientation::Horizontal, 3, Alignment::Middle, 5, 5));
     new Label(window, "Cylinders");
     engineConfig.nbCylindersSlider = new Slider(window);
@@ -217,7 +224,7 @@ int MainScreen::setupKickConfigWindow()
 
     Window* window = new Window(this, "Kick Configuration");
     window->set_layout(new GridLayout(Orientation::Horizontal, 2, Alignment::Middle, 5, 10));
-    window->set_position(Vector2i(400, 0));
+    window->set_position(Vector2i(270, 0));
 
     new Label(window, "Level");
     Slider* level = new Slider(window);
@@ -249,7 +256,7 @@ int MainScreen::setupKickConfigWindow()
     {
         audStream.playEvent
         (
-            SoundEvent(new KickProducer(1.0f))
+            SoundEvent(new KickProducer(5.0f, 2.0f))
         );
     });
 
@@ -257,6 +264,20 @@ int MainScreen::setupKickConfigWindow()
     statusDisplay.nbSoundField->set_units("s");
 
     return 0;
+}
+
+int MainScreen::setupExhaustOffsetsWindow()
+{
+    using namespace nanogui;
+
+    Window* window = new Window(this, "Exhaust Offsets");
+    window->set_layout(new nanogui::BoxLayout(Orientation::Vertical, Alignment::Middle, 10, 5));
+    window->set_position(Vector2i(0, 500));
+
+    ExhaustConfigCanvas* canvas = new ExhaustConfigCanvas(window);
+    canvas->set_size(Vector2i(600, 40));
+
+    return 300;
 }
 
 #include <algorithm>
@@ -269,10 +290,10 @@ void MainScreen::updateEngineSounds()
     double rpm = std::max(1.0, engine->rpm);
     prevInterval = interval;
     interval = 2.0 / (rpm / 60.0);
+
     double timeRemaining = elapse - now;
     double newTimeRemaining = timeRemaining * (interval / prevInterval);
     elapse -= timeRemaining - newTimeRemaining;
-
     while(elapse < now)
     {
         elapse += interval / nbCyl;
@@ -301,6 +322,7 @@ void MainScreen::refreshValues()
     snprintf(tempString, sizeof(tempString), "%.2f", engine->airFuelMassIntake);
     statusDisplay.airFuelMassField->set_value(std::string(tempString));
     statusDisplay.limiterField->set_checked(engine->limiterOn);
+    statusDisplay.crankingField->set_checked(engine->isCranking);
     statusDisplay.nbSoundField->set_value(std::to_string(audStream.getTime() - audStream.m_bufferTime));
 }
 
