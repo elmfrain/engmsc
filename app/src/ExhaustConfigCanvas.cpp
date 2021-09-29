@@ -38,7 +38,7 @@ static GLuint u_modlMatrix;
 
 static GLuint meshVAO = 0;
 static void setupShaders();
-static void setupMesh();
+static void setupMeshes();
 
 struct Mesh
 {
@@ -48,6 +48,7 @@ struct Mesh
 };
 static Mesh cyl_markerMesh;
 static Mesh offset_markerMesh;
+static Mesh cyl_marker_highlightedMesh;
 
 static GLuint backgroundVAO;
 static GLuint backgroundBuffer;
@@ -58,7 +59,7 @@ ExhaustConfigCanvas::ExhaustConfigCanvas(nanogui::Widget* parent) :
     if(!initShaders)
     {
         setupShaders();
-        setupMesh();
+        setupMeshes();
     }
 }
 
@@ -97,21 +98,81 @@ void ExhaustConfigCanvas::draw_contents()
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, NULL);
     }
 
-    modlMatrix = glm::translate(modlMatrix, glm::vec3(20.0f, sizeY, 0.0f));
-    modlMatrix = glm::scale(modlMatrix, glm::vec3(sizeY, -sizeY, 1.0f));
-    glUniformMatrix4fv(u_modlMatrix, 1, false, glm::value_ptr(modlMatrix));
-    glBindVertexArray(cyl_markerMesh.vao);
+    //Render offset markers
+    for(int i = 1; i <= m_nbCylinders; i++)
     {
-        glDrawElements(GL_TRIANGLES, cyl_markerMesh.indexCount, GL_UNSIGNED_INT, NULL);
+        float x = (sizeX / (m_nbCylinders + 1)) * 0.5f + (sizeX / (m_nbCylinders + 1)) * (i - 1);
+        x += (sizeX / (m_nbCylinders + 1)) * (m_offsets[i - 1] * 0.5f + 0.5f);
+        modlMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(x, sizeY, 0.0f));
+        modlMatrix = glm::scale(modlMatrix, glm::vec3(sizeY, -sizeY, 1.0f));
+
+        glUniformMatrix4fv(u_modlMatrix, 1, false, glm::value_ptr(modlMatrix));
+        glBindVertexArray(offset_markerMesh.vao);
+        {
+            glDrawElements(GL_TRIANGLES, offset_markerMesh.indexCount, GL_UNSIGNED_INT, NULL);
+        }
     }
 
-    modlMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(25.0f, sizeY, 0.0f));
-    modlMatrix = glm::scale(modlMatrix, glm::vec3(sizeY, -sizeY, 1.0f));
-    glUniformMatrix4fv(u_modlMatrix, 1, false, glm::value_ptr(modlMatrix));
-    //glBindVertexArray(offset_markerMesh.vao);
+    //Render cyl markers
+    for(int i = 1; i <= m_nbCylinders; i++)
     {
-        //glDrawElements(GL_TRIANGLES, offset_markerMesh.indexCount, GL_UNSIGNED_INT, NULL);
+        float x = (sizeX / (m_nbCylinders + 1)) * i;
+        modlMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(x, sizeY, 0.0f));
+        modlMatrix = glm::scale(modlMatrix, glm::vec3(sizeY, -sizeY, 1.0f));
+
+        glUniformMatrix4fv(u_modlMatrix, 1, false, glm::value_ptr(modlMatrix));
+        Mesh* mesh = i == m_selectedCylinder ? &cyl_marker_highlightedMesh : &cyl_markerMesh;
+        glBindVertexArray(mesh->vao);
+        {
+            glDrawElements(GL_TRIANGLES, mesh->indexCount, GL_UNSIGNED_INT, NULL);
+        }
     }
+}
+
+bool ExhaustConfigCanvas::mouse_button_event(const nanogui::Vector2i& pos, int button, bool down, int modifiers)
+{
+    float sizeX = static_cast<float>(size().x());
+
+    for(int i = 0; i < m_nbCylinders; i++)
+    {
+        float boundsX0 = (sizeX / (m_nbCylinders + 1)) * 0.5f + (sizeX / (m_nbCylinders + 1)) * i;
+        float boundsX1 = boundsX0 + (sizeX / (m_nbCylinders + 1));
+        if(boundsX0 < pos.x() && pos.x() < boundsX1)
+        {
+            m_selectedCylinder = i + 1;
+            if(m_callback) m_callback();
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void ExhaustConfigCanvas::setNbCylinders(int cyls)
+{
+    m_nbCylinders = cyls;
+    if(m_selectedCylinder > cyls)
+    {
+        m_selectedCylinder = cyls;
+    }
+}
+
+void ExhaustConfigCanvas::setOffsets(const float* offsets, int length)
+{
+    for(int i = 0; i < length; i++)
+    {
+        m_offsets[i] = offsets[i];
+    }
+}
+
+void ExhaustConfigCanvas::setCallback(std::function<void()> callback)
+{
+    m_callback = callback;
+}
+
+int ExhaustConfigCanvas::getSelectedCylinder() const
+{
+    return m_selectedCylinder;
 }
 
 #include <iostream>
@@ -170,9 +231,6 @@ void setupShaders()
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#define GRAD_0 180
-#define GRAD_1 240
-
 void loadMesh(Mesh& p_mesh, const char* fileName)
 {
     Assimp::Importer importer;
@@ -183,7 +241,7 @@ void loadMesh(Mesh& p_mesh, const char* fileName)
     const aiMesh* mesh = cyl_marker->mMeshes[0];
     p_mesh.indexCount = mesh->mNumFaces * 3;
     p_mesh.vertCount = mesh->mNumVertices;
-    GLuint* indicies = new GLuint[cyl_markerMesh.indexCount];
+    GLuint* indicies = new GLuint[p_mesh.indexCount];
     for(int i = 0; i < mesh->mNumFaces; i++)
     {
         aiFace* face = &mesh->mFaces[i];
@@ -211,7 +269,10 @@ void loadMesh(Mesh& p_mesh, const char* fileName)
     delete indicies;
 }
 
-void setupMesh()
+#define GRAD_0 180
+#define GRAD_1 240
+
+void setupMeshes()
 {
     Assimp::Importer importer;
     GLuint buffers[3];
@@ -250,4 +311,5 @@ void setupMesh()
 
     loadMesh(cyl_markerMesh, "rsc/mesh/cyl_marker.ply");
     loadMesh(offset_markerMesh, "rsc/mesh/offset_marker.ply");
+    loadMesh(cyl_marker_highlightedMesh, "rsc/mesh/cyl_marker_highlighted.ply");
 }

@@ -1,6 +1,5 @@
 #include <engmsc-app/MainScreen.hpp>
 #include <engmsc-app/FlywheelRenderer.hpp>
-#include <engmsc-app/ExhaustConfigCanvas.hpp>
 
 #include <GLFW/glfw3.h>
 
@@ -59,9 +58,9 @@ MainScreen::MainScreen() :
 
     setupEngineStatusWindow(0);
     setupEngineInputWindow(200);
+    setupExhaustOffsetsWindow();
     setupEngineConfigWindow(433);
     setupKickConfigWindow();
-    setupExhaustOffsetsWindow();
 
     set_visible(true);
     perform_layout();
@@ -182,6 +181,7 @@ int MainScreen::setupEngineConfigWindow(int y)
 {
     using namespace nanogui;
 
+    ExhaustConfigCanvas* exhaustCanvas = engineConfig.exhaustCanvas;
     FlywheelRenderer::Engine* engine = FlywheelRenderer::getEngine();
 
     Window* window = new Window(this, "Engine Configuration");
@@ -194,10 +194,11 @@ int MainScreen::setupEngineConfigWindow(int y)
     textBox->set_fixed_width(100);
     textBox->set_alignment(TextBox::Alignment::Left);
     int* o = &nbCyl;
-    engineConfig.nbCylindersSlider->set_callback([textBox, o](float value) 
+    engineConfig.nbCylindersSlider->set_callback([textBox, o, exhaustCanvas](float value) 
     {
         int cylinders = int(value * 15 + 1);
         textBox->set_value(std::to_string(cylinders));
+        exhaustCanvas->setNbCylinders(cylinders);
         *o = cylinders;
     });
     new Label(window, "Rev Limit");
@@ -271,11 +272,48 @@ int MainScreen::setupExhaustOffsetsWindow()
     using namespace nanogui;
 
     Window* window = new Window(this, "Exhaust Offsets");
-    window->set_layout(new nanogui::BoxLayout(Orientation::Vertical, Alignment::Middle, 10, 5));
+    window->set_layout(new BoxLayout(Orientation::Vertical, Alignment::Minimum, 10, 5));
     window->set_position(Vector2i(0, 500));
 
-    ExhaustConfigCanvas* canvas = new ExhaustConfigCanvas(window);
-    canvas->set_size(Vector2i(600, 40));
+    engineConfig.exhaustCanvas = new ExhaustConfigCanvas(window);
+    engineConfig.exhaustCanvas->set_size(Vector2i(600, 40));
+    engineConfig.exhaustCanvas->setOffsets(volumes, 16);
+
+    TextBox* textBox = new TextBox(window);
+    textBox->set_value("1");
+    textBox->set_units("cyl#");
+    textBox->set_alignment(TextBox::Alignment::Right);
+    textBox->set_fixed_width(100);
+
+    Label* label = new Label(window, "Offset: 1.00");
+    label->set_fixed_width(100);
+
+    Slider* offsetSlider = new Slider(window);
+    offsetSlider->set_fixed_width(600);
+    offsetSlider->set_value(0.5f);
+    float* offsets = volumes;
+    ExhaustConfigCanvas* canvas = engineConfig.exhaustCanvas;
+    offsetSlider->set_callback([offsets, canvas, label] (float value) 
+    {
+        int cylIndex = canvas->getSelectedCylinder() - 1;
+        offsets[cylIndex] = 2.0f * value - 1.0f;
+        canvas->setOffsets(offsets, 16);
+
+        char string[16] = {0};
+        snprintf(string, sizeof(string), "Offset: %.2f", offsets[cylIndex]);
+        label->set_caption(string);
+    });
+
+    engineConfig.exhaustCanvas->setCallback([offsets, offsetSlider, canvas, label, textBox] ()
+    {
+        int cylIndex = canvas->getSelectedCylinder() - 1;
+        char string[16] = {0};
+        snprintf(string, sizeof(string), "Offset: %.2f", offsets[cylIndex]);
+        label->set_caption(string);
+
+        offsetSlider->set_value(offsets[cylIndex] * 0.5f + 0.5f);
+        textBox->set_value(std::to_string(canvas->getSelectedCylinder()));
+    });
 
     return 300;
 }
@@ -302,7 +340,7 @@ void MainScreen::updateEngineSounds()
 
         double level = engine->throttle * 0.2 + 0.8;
         KickProducer* p = new KickProducer(!engine->limiterOn ? engine->throttle : 0.0f, std::max(0.0, std::min(rpm / 4000.0, 1.0)));
-        audStream.playEventAt(SoundEvent(p, level), elapse + interval * volumes[cylIndex] * 0.1);
+        audStream.playEventAt(SoundEvent(p, level), elapse + 0.03 + (interval / nbCyl) * 0.5f * volumes[cylIndex]);
     }
 }
 
@@ -320,7 +358,7 @@ void MainScreen::refreshValues()
     statusDisplay.coolantTempField->set_value(std::to_string((int) engine->coolantTemperature));
     statusDisplay.idleThrottleField->set_value(std::to_string(int(engine->idleThrottle * 250)));
     snprintf(tempString, sizeof(tempString), "%.2f", engine->airFuelMassIntake);
-    statusDisplay.airFuelMassField->set_value(std::string(tempString));
+    statusDisplay.airFuelMassField->set_value(tempString);
     statusDisplay.limiterField->set_checked(engine->limiterOn);
     statusDisplay.crankingField->set_checked(engine->isCranking);
     statusDisplay.nbSoundField->set_value(std::to_string(audStream.getTime() - audStream.m_bufferTime));

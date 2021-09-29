@@ -73,7 +73,7 @@ static GLuint shaderProgram = 0;
 static Iir::Butterworth::LowPass lowPass;
 
 static void setupShaders();
-static void setupMesh();
+static void setupMeshes();
 static void setupFramebuffer();
 static void updateEngine();
 
@@ -82,7 +82,7 @@ static FlywheelRenderer::Engine* engine = new FlywheelRenderer::Engine();
 void FlywheelRenderer::initialize()
 {
     setupShaders();
-    setupMesh();
+    setupMeshes();
     setupFramebuffer();
     lowPass.setup(60.0, 5.0);
 }
@@ -181,7 +181,7 @@ static void setupShaders()
     u_angleSpeed = glGetUniformLocation(shaderProgram, "u_angleSpeed");
 }
 
-void setupMesh()
+void setupMeshes()
 {
     Assimp::Importer importer;
 

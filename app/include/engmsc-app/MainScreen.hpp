@@ -4,6 +4,7 @@
 
 #include <engmsc/al/ALAudioContext.hpp>
 #include <engmsc/KickProducer.hpp>
+#include <engmsc-app/ExhaustConfigCanvas.hpp>
 
 class MainScreen : public nanogui::Screen
 {
@@ -21,6 +22,7 @@ private:
     struct EngineConfig
     {
         nanogui::Slider* nbCylindersSlider;
+        ExhaustConfigCanvas* exhaustCanvas;
     };
     StatusDisplay statusDisplay;
     EngineConfig engineConfig;
@@ -32,7 +34,7 @@ private:
     double prevInterval;
     int cylIndex;
     int nbCyl = 1;
-    float volumes[16] = { 0.50f, 0.92f, 1.0f, 0.72f, 0.71f, 0.51f, 0.92f, 0.68f, 0.73f, 0.72f, 0.77f, 0.95f, 0.63f, 0.62f, 0.59f, 0.56f };
+    float volumes[16] = { 0.0f };
 
     MainScreen();
     void setupGLFWcallbacks();
