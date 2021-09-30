@@ -40,7 +40,7 @@ private:
     void setupGLFWcallbacks();
 
     int setupEngineStatusWindow(int y);
-    int setupEngineInputWindow(int y);
+    int setupPowertrainInputWindow(int y);
     int setupEngineConfigWindow(int y);
     int setupKickConfigWindow();
     int setupExhaustOffsetsWindow();

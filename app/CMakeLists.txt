@@ -12,9 +12,6 @@ if(NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
     
 endif()
 
-#Find SMFL
-find_package(SFML 2.5 COMPONENTS system audio REQUIRED)
-
 #Find OpenAL
 find_package(OpenAL REQUIRED)
 
@@ -28,7 +25,6 @@ set_property(TARGET glfw glfw_objects nanogui PROPERTY FOLDER "dependencies")
 add_definitions(${NANOGUI_EXTRA_DEFS})
 
 #Add assimp
-#set(BUILD_SHARED_LIBS ON CACHE BOOL " " FORCE) #Assimp library is huge and it takes a while to link it statically
 set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF)
 set(ASSIMP_BUILD_PLY_IMPORTER ON) #Only enable ply importer
 set(ASSIMP_NO_EXPORT ON CACHE BOOL " " FORCE)

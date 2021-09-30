@@ -302,7 +302,7 @@ void updateEngine()
     //Disable Spark When limiter is activated
     if(!engine->limiterOn)
     {
-        engine->angleSpeed += (engine->airFuelMassIntake) / (3.2 + 0.4 * rnd);
+        engine->angleSpeed += (engine->airFuelMassIntake) / (3.2 + 0.25 * rnd);
     }
 
     //Cranking starter

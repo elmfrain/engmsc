@@ -57,7 +57,7 @@ MainScreen::MainScreen() :
     audCtx.addStream(audStream);
 
     setupEngineStatusWindow(0);
-    setupEngineInputWindow(200);
+    setupPowertrainInputWindow(200);
     setupExhaustOffsetsWindow();
     setupEngineConfigWindow(433);
     setupKickConfigWindow();
@@ -121,13 +121,13 @@ int MainScreen::setupEngineStatusWindow(int y)
     return window->height() + window->position().y();
 }
 
-int MainScreen::setupEngineInputWindow(int y)
+int MainScreen::setupPowertrainInputWindow(int y)
 {
     using namespace nanogui;
 
     FlywheelRenderer::Engine* engine = FlywheelRenderer::getEngine();
 
-    Window* window = new Window(this, "Engine Input");
+    Window* window = new Window(this, "Powertrain Input");
     window->set_position(Vector2i(0, 230));
     window->set_layout(new GridLayout(Orientation::Horizontal, 3, Alignment::Middle, 5, 5));
 
@@ -185,7 +185,7 @@ int MainScreen::setupEngineConfigWindow(int y)
     FlywheelRenderer::Engine* engine = FlywheelRenderer::getEngine();
 
     Window* window = new Window(this, "Engine Configuration");
-    window->set_position(Vector2i(0, 378));
+    window->set_position(Vector2i(0, 610));
     window->set_layout(new GridLayout(Orientation::Horizontal, 3, Alignment::Middle, 5, 5));
     new Label(window, "Cylinders");
     engineConfig.nbCylindersSlider = new Slider(window);
@@ -273,10 +273,24 @@ int MainScreen::setupExhaustOffsetsWindow()
 
     Window* window = new Window(this, "Exhaust Offsets");
     window->set_layout(new BoxLayout(Orientation::Vertical, Alignment::Minimum, 10, 5));
-    window->set_position(Vector2i(0, 500));
+    window->set_position(Vector2i(0, 378));
+
+    ComboBox* cBox = new ComboBox(window,
+    {
+        "Default Preset",
+        "2Cyl: Harley-Davidson V-Twin",
+        "3Cyl: Suzuki Cappuccino",
+        "4Cyl: Honda Civic",
+        "4Cyl: Subaru Impreza WRX STi",
+        "5Cyl: Audi Quattro",
+        "6Cyl: Toyota Supra",
+        "6Cyl: Nissan GTR R35",
+        "8Cyl: Ferrari F40",
+        "8Cyl: Chevrolet Corvette C7"
+    });
 
     engineConfig.exhaustCanvas = new ExhaustConfigCanvas(window);
-    engineConfig.exhaustCanvas->set_size(Vector2i(600, 40));
+    engineConfig.exhaustCanvas->set_size(Vector2i(480, 40));
     engineConfig.exhaustCanvas->setOffsets(volumes, 16);
 
     TextBox* textBox = new TextBox(window);
@@ -289,7 +303,7 @@ int MainScreen::setupExhaustOffsetsWindow()
     label->set_fixed_width(100);
 
     Slider* offsetSlider = new Slider(window);
-    offsetSlider->set_fixed_width(600);
+    offsetSlider->set_fixed_width(480);
     offsetSlider->set_value(0.5f);
     float* offsets = volumes;
     ExhaustConfigCanvas* canvas = engineConfig.exhaustCanvas;
@@ -315,6 +329,47 @@ int MainScreen::setupExhaustOffsetsWindow()
         textBox->set_value(std::to_string(canvas->getSelectedCylinder()));
     });
 
+    cBox->set_fixed_width(480);
+    cBox->set_callback([offsets, canvas] (int preset)
+    {
+        float thePreset[16] = { 0.0f };
+        #define setPreset(...) { float p[] = __VA_ARGS__; memcpy(thePreset, p, sizeof(p)); }
+
+        switch (preset)
+        {
+        case 1:
+            setPreset({ 0.0f, 0.5f });
+            break;
+        case 2:
+            setPreset({ 0.0f, 0.16f, 0.16f });
+            break;
+        case 3:
+            setPreset({ 0.0f, 0.09f, 0.1f, 0.06f });
+            break;
+        case 4:
+            setPreset({ 0.0f, 0.09f, 0.42f, 0.34f });
+            break;
+        case 5:
+            setPreset({ 0.0f, 0.05f, 0.12f, 0.14f, 0.17f });
+            break;
+        case 6:
+            setPreset({ 0.0f, 0.16f, 0.21f, 0.19f, 0.16f, 0.12f });
+            break;
+        case 7:
+            setPreset({ 0.0f, 0.0f, 0.0f, 0.25f, 0.25f, 0.25f });
+            break;
+        case 8:
+            setPreset({ 0.0f, 0.01f, 0.04f, 0.07f, 0.21f, 0.22f, 0.19f, 0.20f });
+            break;
+        case 9:
+            setPreset({ 0.0f, -0.02f, 0.57f, 0.0f, 0.23f, 0.22f, 0.61f, 0.20f });
+            break;
+        }
+
+        memcpy(offsets, thePreset, sizeof(thePreset));
+        canvas->setOffsets(thePreset, 16);
+    });
+
     return 300;
 }
 
@@ -338,9 +393,9 @@ void MainScreen::updateEngineSounds()
         cylIndex = ++cylIndex % nbCyl;
         if(engine->rpm < 1.0) continue;
 
-        double level = engine->throttle * 0.2 + 0.8;
+        //double level = engine->throttle * 0.2 + 0.8;
         KickProducer* p = new KickProducer(!engine->limiterOn ? engine->throttle : 0.0f, std::max(0.0, std::min(rpm / 4000.0, 1.0)));
-        audStream.playEventAt(SoundEvent(p, level), elapse + 0.03 + (interval / nbCyl) * 0.5f * volumes[cylIndex]);
+        audStream.playEventAt(SoundEvent(p), elapse + 0.03 + (interval / nbCyl) * 0.5f * volumes[cylIndex]);
     }
 }
 
