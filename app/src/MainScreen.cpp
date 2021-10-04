@@ -19,13 +19,20 @@ namespace Callbacks
     static void onKey(GLFWwindow*, int key, int scancode, int action, int mods)
     {
         MainScreen::getScreen()->key_callback_event(key, scancode, action, mods);
+
+        FlywheelRenderer::Engine* engine = FlywheelRenderer::getEngine();
+        FlywheelRenderer::Gearbox* gearbox = FlywheelRenderer::getGearbox();
+
+        if(key == GLFW_KEY_Q && action == GLFW_PRESS) gearbox->setGear(gearbox->gear - 1);
+        else if(key == GLFW_KEY_E && action == GLFW_PRESS) gearbox->setGear(gearbox->gear + 1);
+
         if(key == GLFW_KEY_SPACE && action == GLFW_PRESS)
         {
-            FlywheelRenderer::getEngine()->isCranking = true;
+            engine->isCranking = true;
         }
         else if(key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
         {
-            FlywheelRenderer::getEngine()->isCranking = false;
+            engine->isCranking = false;
         }
     }
     static void onChar(GLFWwindow*, unsigned int codepoint)
@@ -53,14 +60,16 @@ MainScreen::MainScreen() :
     initialize(glfwWindow, false);
     setupGLFWcallbacks();
 
+    windProducer = new WindProducer();
     audCtx.initContext();
     audCtx.addStream(audStream);
+    audStream.playEvent(SoundEvent(windProducer));
 
     setupEngineStatusWindow(0);
-    setupPowertrainInputWindow(200);
+    setupPowertrainInputWindow(280);
     setupExhaustOffsetsWindow();
     setupEngineConfigWindow(433);
-    setupKickConfigWindow();
+    setupGearboxStatusWindow();
 
     set_visible(true);
     perform_layout();
@@ -109,6 +118,12 @@ int MainScreen::setupEngineStatusWindow(int y)
     statusDisplay.airFuelMassField->set_units("g/s");
     statusDisplay.airFuelMassField->set_fixed_width(120);
     statusDisplay.airFuelMassField->set_alignment(TextBox::Alignment::Left);
+    new Label(window, "Torque");
+    statusDisplay.torqueField = new TextBox(window);
+    statusDisplay.torqueField->set_value("0.0");
+    statusDisplay.torqueField->set_units("N m");
+    statusDisplay.torqueField->set_fixed_width(120);
+    statusDisplay.torqueField->set_alignment(TextBox::Alignment::Left);
     new Label(window, "Limiter");
     statusDisplay.limiterField = new CheckBox(window);
     statusDisplay.limiterField->set_caption("");
@@ -126,9 +141,10 @@ int MainScreen::setupPowertrainInputWindow(int y)
     using namespace nanogui;
 
     FlywheelRenderer::Engine* engine = FlywheelRenderer::getEngine();
+    FlywheelRenderer::Gearbox* gearbox = FlywheelRenderer::getGearbox();
 
     Window* window = new Window(this, "Powertrain Input");
-    window->set_position(Vector2i(0, 230));
+    window->set_position(Vector2i(0, 260));
     window->set_layout(new GridLayout(Orientation::Horizontal, 3, Alignment::Middle, 5, 5));
 
     new Label(window, "Throttle");
@@ -155,11 +171,16 @@ int MainScreen::setupPowertrainInputWindow(int y)
     textBox = new TextBox(window, "0");
     textBox->set_units("%");
     textBox->set_fixed_width(75);
-    slider->set_callback([textBox](float value) { textBox->set_value(std::to_string((int) (value * 100))); });
-    slider->set_final_callback([slider, textBox] (float value) 
+    slider->set_callback([textBox, gearbox](float value)
+    {
+        textBox->set_value(std::to_string((int) (value * 100)));
+        gearbox->brakeAmount = value;
+    });
+    slider->set_final_callback([slider, textBox, gearbox] (float value) 
     {
         slider->set_value(0.0f);
         textBox->set_value("0");
+        gearbox->brakeAmount = 0.0;
     });
     new Label(window, "Clutch");
     slider = new Slider(window);
@@ -167,11 +188,16 @@ int MainScreen::setupPowertrainInputWindow(int y)
     textBox = new TextBox(window, "0");
     textBox->set_units("%");
     textBox->set_fixed_width(75);
-    slider->set_callback([textBox](float value) { textBox->set_value(std::to_string((int) (value * 100))); });
-    slider->set_final_callback([slider, textBox] (float value) 
+    slider->set_callback([textBox, gearbox](float value)
+    {
+        textBox->set_value(std::to_string((int) (value * 100)));
+        gearbox->clutchAmount = value;
+    });
+    slider->set_final_callback([slider, textBox, gearbox] (float value) 
     {
         slider->set_value(0.0f);
         textBox->set_value("0");
+        gearbox->clutchAmount = 0.0;
     });
 
     return window->height() + window->position().y();
@@ -219,50 +245,32 @@ int MainScreen::setupEngineConfigWindow(int y)
     return window->height() + window->position().y();
 }
 
-int MainScreen::setupKickConfigWindow()
+int MainScreen::setupGearboxStatusWindow()
 {
     using namespace nanogui;
 
-    Window* window = new Window(this, "Kick Configuration");
-    window->set_layout(new GridLayout(Orientation::Horizontal, 2, Alignment::Middle, 5, 10));
+    Window* window = new Window(this, "Gearbox State");
+    window->set_layout(new GridLayout(Orientation::Horizontal, 2, Alignment::Middle, 5, 5));
     window->set_position(Vector2i(270, 0));
 
-    new Label(window, "Level");
-    Slider* level = new Slider(window);
-    level->set_fixed_width(160);
-    level->set_value(1.0f);
+    new Label(window, "Gear");
+    statusDisplay.gearField = new TextBox(window);
+    statusDisplay.gearField->set_value("N");
+    statusDisplay.gearField->set_fixed_width(120);
+    statusDisplay.gearField->set_alignment(TextBox::Alignment::Left);
 
-    new Label(window, "Pitch");
-    Slider* pitch = new Slider(window);
-    pitch->set_fixed_width(160);
+    new Label(window, "Gear Ratio");
+    statusDisplay.gearRatioField = new TextBox(window);
+    statusDisplay.gearRatioField->set_value("--");
+    statusDisplay.gearRatioField->set_fixed_width(120);
+    statusDisplay.gearRatioField->set_alignment(TextBox::Alignment::Left);
 
-    new Label(window, "EG Attack");
-    Slider* attack = new Slider(window);
-    attack->set_fixed_width(160);
-
-    new Label(window, "EG Release");
-    Slider* release = new Slider(window);
-    release->set_fixed_width(160);
-
-    new Label(window, "Mod Amount");
-    Slider* modAmount = new Slider(window);
-    modAmount->set_fixed_width(160);
-
-    new Label(window, "Mod Rate");
-    Slider* modRate = new Slider(window);
-    modRate->set_fixed_width(160);
-
-    Button* button = new Button(window, "Kick");
-    button->set_callback([=]()
-    {
-        audStream.playEvent
-        (
-            SoundEvent(new KickProducer(5.0f, 2.0f))
-        );
-    });
-
-    statusDisplay.nbSoundField = new TextBox(window);
-    statusDisplay.nbSoundField->set_units("s");
+    new Label(window, "Vehicle Speed");
+    statusDisplay.vehicleSpeedField = new TextBox(window);
+    statusDisplay.vehicleSpeedField->set_value("0.0");
+    statusDisplay.vehicleSpeedField->set_fixed_width(120);
+    statusDisplay.vehicleSpeedField->set_units("km/h");
+    statusDisplay.vehicleSpeedField->set_alignment(TextBox::Alignment::Left);
 
     return 0;
 }
@@ -273,7 +281,7 @@ int MainScreen::setupExhaustOffsetsWindow()
 
     Window* window = new Window(this, "Exhaust Offsets");
     window->set_layout(new BoxLayout(Orientation::Vertical, Alignment::Minimum, 10, 5));
-    window->set_position(Vector2i(0, 378));
+    window->set_position(Vector2i(0, 404));
 
     ComboBox* cBox = new ComboBox(window,
     {
@@ -375,14 +383,21 @@ int MainScreen::setupExhaustOffsetsWindow()
 
 #include <algorithm>
 
+Iir::Butterworth::LowPass<4> throttleLowpass;
+
 void MainScreen::updateEngineSounds()
 {
+    throttleLowpass.setup(60.0, 8.0);
+
     FlywheelRenderer::Engine* engine = FlywheelRenderer::getEngine();
 
     double now = audStream.getTime();
     double rpm = std::max(1.0, engine->rpm);
     prevInterval = interval;
     interval = 2.0 / (rpm / 60.0);
+
+    double throttleSoundLevel = !engine->limiterOn ? engine->throttle * 2.2f + 0.8f: 0.5f;
+    throttleSoundLevel = throttleLowpass.filter(throttleSoundLevel);
 
     double timeRemaining = elapse - now;
     double newTimeRemaining = timeRemaining * (interval / prevInterval);
@@ -393,10 +408,13 @@ void MainScreen::updateEngineSounds()
         cylIndex = ++cylIndex % nbCyl;
         if(engine->rpm < 1.0) continue;
 
-        //double level = engine->throttle * 0.2 + 0.8;
-        KickProducer* p = new KickProducer(!engine->limiterOn ? engine->throttle : 0.0f, std::max(0.0, std::min(rpm / 4000.0, 1.0)));
+        
+        KickProducer* p = new KickProducer(throttleSoundLevel, std::max(0.0, std::min(rpm / 4000.0, 1.0)));
+        //KickProducer* p = new KickProducer(6.0f, std::max(0.0, std::min(rpm / 4000.0, 1.0)));
         audStream.playEventAt(SoundEvent(p), elapse + 0.03 + (interval / nbCyl) * 0.5f * volumes[cylIndex]);
     }
+
+    windProducer->setWindVelocity(FlywheelRenderer::getGearbox()->kmh);
 }
 
 void MainScreen::destroyAudioContext()
@@ -407,16 +425,25 @@ void MainScreen::destroyAudioContext()
 void MainScreen::refreshValues()
 {
     FlywheelRenderer::Engine* engine = FlywheelRenderer::getEngine();
-    char tempString[256] = { 0 };
+    FlywheelRenderer::Gearbox* gearbox = FlywheelRenderer::getGearbox();
+    #define formatString(format, ...) { memset(tempString, 0, sizeof(tempString)); snprintf(tempString, sizeof(tempString), format, __VA_ARGS__); }
+    char tempString[256];
 
     statusDisplay.rpmField->set_value(std::to_string((int) engine->rpm));
     statusDisplay.coolantTempField->set_value(std::to_string((int) engine->coolantTemperature));
     statusDisplay.idleThrottleField->set_value(std::to_string(int(engine->idleThrottle * 250)));
-    snprintf(tempString, sizeof(tempString), "%.2f", engine->airFuelMassIntake);
+    formatString("%.2f", engine->airFuelMassIntake);
     statusDisplay.airFuelMassField->set_value(tempString);
     statusDisplay.limiterField->set_checked(engine->limiterOn);
     statusDisplay.crankingField->set_checked(engine->isCranking);
-    statusDisplay.nbSoundField->set_value(std::to_string(audStream.getTime() - audStream.m_bufferTime));
+    formatString("%.2f", engine->torque);
+    statusDisplay.torqueField->set_value(tempString);
+
+    statusDisplay.gearField->set_value(gearbox->gear == 0 ? "N" : std::to_string(gearbox->gear));
+    if(gearbox->gear > 0) formatString("%.2f", gearbox->gearRatios[gearbox->gear - 1]);
+    statusDisplay.gearRatioField->set_value(gearbox->gear == 0 ? "--" : tempString);
+    formatString("%.1f", gearbox->kmh);
+    statusDisplay.vehicleSpeedField->set_value(tempString);
 }
 
 void MainScreen::setGLFWwindow(GLFWwindow* window)

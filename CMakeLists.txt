@@ -9,6 +9,7 @@ add_library(engmsc STATIC
     src/IAudioProducer.cpp
     src/AudioStream.cpp
     src/KickProducer.cpp
+    src/WindProducer.cpp
     src/SoundEvent.cpp
 
     src/al/ALAudioContext.cpp

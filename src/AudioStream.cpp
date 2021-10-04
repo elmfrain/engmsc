@@ -84,11 +84,13 @@ AudioStream::TimedSoundEvent::TimedSoundEvent(const SoundEvent& p_event, double 
 
 #include <cstring>
 #include <Iir.h>
+Iir::Butterworth::HighPass<4> highPass;
 Iir::Butterworth::LowPass<4> lowPass;
 
 void AudioStream::i_fillNextBuffers()
 {
-    lowPass.setup(SAMPLE_RATE, 10000.0);
+    highPass.setup(SAMPLE_RATE, 5.0);
+    lowPass.setup(SAMPLE_RATE, 500.0);
 
     while(m_inputBufferQueue.size() > 0)
     {
@@ -130,7 +132,8 @@ void AudioStream::i_fillNextBuffers()
 
         for(int i = 0; i < SAMPLES_PER_BUFFER; i++)
         {
-            float sample = lowPass.filter(std::max(-1.0f, std::min(m_workBuffer[i], 1.0f)));
+            float sample = highPass.filter(m_workBuffer[i]) * 0.6 + lowPass.filter(m_workBuffer[i]) * 0.9;
+            sample = std::max(-1.0f, std::min(sample, 1.0f));
             currentBuffer.data[i] = sample * 32760;
         }
         m_outputBufferQueue.push(&currentBuffer);

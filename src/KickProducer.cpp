@@ -59,7 +59,7 @@ const float PI = M_PI;
 float KickProducer::genSample() const
 {
     float noise = 2.0f * float(rand()) / RAND_MAX - 1.0f;
-    float sample = sin((m_samplePos * 3.1415 * (50.0 + F(m_samplePos * 10))) / 44100) * 0.276f * G(m_samplePos * 6);
+    float sample = sin((m_samplePos * 3.1415 * (50.0 + F(m_samplePos * 50))) / 44100) * 0.276f * G(m_samplePos * 6);
     sample += noise * 0.045f * G(m_samplePos * m_factor2 * 2.0f);
     sample *= 1.0f - (m_samplePos * SAMPLE_DURATION) / getDuration();
 

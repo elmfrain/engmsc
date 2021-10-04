@@ -1,25 +1,23 @@
-#pragma once
-
-#ifndef KICK_PRODUCER_HPP
-#define KICK_PRODUCER_HPP
+#ifndef WIND_PRODUCER_HPP
+#define WIND_PRODUCER_HPP
 
 #include <engmsc/IAudioProducer.hpp>
+#include <iir/Butterworth.h>
 
-class KickProducer : public IAudioProducer
+class WindProducer : public IAudioProducer
 {
 public:
-    KickProducer(float factor = 1.0f, float factor2 = 1.0f);
-
     virtual size_t produceSamples(float* buffer, size_t bufferSize) override;
     virtual size_t addOntoSamples(float* buffer, size_t bufferSize, float gain = 1.0f) override;
     virtual double getDuration() const override;
     virtual bool hasExpired() const override;
+
+    void setWindVelocity(double windVelocity);
+    void expire();
 private:
-    float m_factor;
-    float m_factor2;
-    bool m_hasExpired = false;
-    size_t m_samplePos = 0;
-    inline float genSample() const;
+    bool m_expired = false;
+    Iir::Butterworth::LowPass<4> m_lowPass;
+    double m_windVelocity = 0.0;
 };
 
 #endif

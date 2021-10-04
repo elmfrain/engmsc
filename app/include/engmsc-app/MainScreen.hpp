@@ -5,6 +5,7 @@
 #include <engmsc/al/ALAudioContext.hpp>
 #include <engmsc/KickProducer.hpp>
 #include <engmsc-app/ExhaustConfigCanvas.hpp>
+#include <engmsc/WindProducer.hpp>
 
 class MainScreen : public nanogui::Screen
 {
@@ -15,9 +16,13 @@ private:
         nanogui::TextBox* coolantTempField;
         nanogui::TextBox* idleThrottleField;
         nanogui::TextBox* airFuelMassField;
+        nanogui::TextBox* torqueField;
         nanogui::CheckBox* limiterField;
         nanogui::CheckBox* crankingField;
-        nanogui::TextBox* nbSoundField;
+
+        nanogui::TextBox* gearField;
+        nanogui::TextBox* gearRatioField;
+        nanogui::TextBox* vehicleSpeedField;
     };
     struct EngineConfig
     {
@@ -27,6 +32,7 @@ private:
     StatusDisplay statusDisplay;
     EngineConfig engineConfig;
 
+    WindProducer* windProducer;
     AudioStream audStream;
     ALAudioContext audCtx;
     double elapse;
@@ -42,7 +48,7 @@ private:
     int setupEngineStatusWindow(int y);
     int setupPowertrainInputWindow(int y);
     int setupEngineConfigWindow(int y);
-    int setupKickConfigWindow();
+    int setupGearboxStatusWindow();
     int setupExhaustOffsetsWindow();
 
 public:
