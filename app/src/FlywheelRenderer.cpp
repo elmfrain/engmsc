@@ -322,7 +322,7 @@ void updateEngine()
     //Cranking starter
     if(engine->isCranking)
     {
-        engine->torque += 0.05f * sinf32(engine->angle * 1.7453e-2) + 1.0f;
+        engine->torque += 0.05f * sinf(engine->angle * 1.7453e-2) + 1.0f;
     }
 
     //Calculate temperature

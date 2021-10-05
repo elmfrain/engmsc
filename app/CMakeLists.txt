@@ -14,6 +14,11 @@ endif()
 
 #Find OpenAL
 find_package(OpenAL REQUIRED)
+if(NOT OPENAL_FOUND)
+    message("Could not find OpenAL!")
+else()
+    message("OpenAL Version: ${OPENAL_VERSION_STRING}")
+endif()
 
 #Add NanoGUI
 set(NANOGUI_BUILD_EXAMPLE OFF CACHE BOOL " " FORCE)
@@ -49,15 +54,13 @@ add_executable(${PROJECT_NAME}
 
 #Link dependancies
 target_link_libraries(${PROJECT_NAME}
-    sfml-system
-    sfml-audio
     nanogui
     ${NANOGUI_EXTRA_LIBS}
     glad
     assimp
     glm
     engmsc
-    openal
+    ${OPENAL_LIBRARY}
 )
 target_include_directories(${PROJECT_NAME} PRIVATE
     "include"

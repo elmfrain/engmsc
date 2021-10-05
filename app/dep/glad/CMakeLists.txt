@@ -10,7 +10,6 @@ add_library(${PROJECT_NAME} STATIC
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
-    GL
     ${CMAKE_DL_LIBS}
 )
 
