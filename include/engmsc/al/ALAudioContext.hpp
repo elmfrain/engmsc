@@ -5,8 +5,16 @@
 
 #include <engmsc/IAudioContext.hpp>
 
-#include <AL/alc.h>
-#include <AL/al.h>
+#ifdef _WIN32
+    #include <alc.h>
+    #include <al.h>
+#elif __linux__
+    #include <AL/alc.h>
+    #include <AL/al.h>
+#elif __APPLE__
+    #include <OpenAL/alc.h>
+    #include <OpenAL/al.h>
+#endif
 
 #include <forward_list>
 
