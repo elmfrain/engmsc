@@ -125,7 +125,10 @@ void AudioStream::i_fillNextBuffers()
             });
             if(getTime() - m_bufferTime > COMPENSAION_DELAY * 3.0)
             {
-                m_activeSounds.clear();
+                m_activeSounds.remove_if([](TimedSoundEvent& e)
+                {
+                    return e.event.audioProducer->getDuration() > 0.0;
+                });
                 m_bufferTime  = getTime() - COMPENSAION_DELAY;
             }
         }

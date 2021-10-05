@@ -51,7 +51,7 @@ bool KickProducer::hasExpired() const
 }
 
 const double SAMPLE_DURATION = 1.0 / SAMPLE_RATE;
-const float PI = M_PI;
+const float PI = 3.14159265f;
 
 #define F(x) (m_factor / (10 * double(x) / SAMPLE_RATE + 1))
 #define G(x) (1.0 / (10.0 * double(x) / SAMPLE_RATE + 1))
