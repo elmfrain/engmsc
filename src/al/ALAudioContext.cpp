@@ -53,6 +53,7 @@ void ALAudioContext::addStream(AudioStream& audioStream)
 
     std::unique_lock<std::mutex> lock(m_streamListMutex);
     m_activeStreams.push_front(streamChannel);
+;
 }
 
 bool ALAudioContext::removeStream(AudioStream& audioStream)

@@ -3,7 +3,7 @@
 
 size_t WindProducer::produceSamples(float* buffer, size_t bufferSize)
 {
-    m_lowPass.setup(SAMPLE_RATE, m_windVelocity * 4.25);
+    m_lowPass.setup(SAMPLE_RATE, std::max(1.0, m_windVelocity * 4.25));
 
     for(size_t i = 0; i < bufferSize; i++)
     {
@@ -17,11 +17,11 @@ size_t WindProducer::produceSamples(float* buffer, size_t bufferSize)
 
 size_t WindProducer::addOntoSamples(float* buffer, size_t bufferSize, float gain)
 {
-    m_lowPass.setup(SAMPLE_RATE, m_windVelocity * 4.25);
+    m_lowPass.setup(SAMPLE_RATE, std::max(1.0, m_windVelocity * 4.25));
 
     for(size_t i = 0; i < bufferSize; i++)
     {
-        double rnd = 2.0 * (double(rand()) / RAND_MAX) - 1.0f;
+        double rnd = 2.0 * (double (rand()) / RAND_MAX) - 1.0f;
         
         buffer[i] += m_lowPass.filter(rnd) * std::min(m_windVelocity / 150.0, 0.9);
     }
