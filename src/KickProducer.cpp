@@ -2,9 +2,10 @@
 #include <engmsc/AudioStream.hpp>
 #include <math.h>
 
-KickProducer::KickProducer(float factor, float factor2) :
+KickProducer::KickProducer(float factor, float factor2, float factor3) :
     m_factor(80.0f + factor * 600.0f),
-    m_factor2(20.0f + factor2 * 180.0f) {}
+    m_factor2(20.0f + factor2 * 180.0f),
+    m_duration(std::max(0.02f, std::min(factor3, 1.0f))) {}
 
 size_t KickProducer::produceSamples(float* buffer, size_t nbSamples)
 {
@@ -42,7 +43,7 @@ size_t KickProducer::addOntoSamples(float* buffer, size_t nbSamples, float gain)
 
 double KickProducer::getDuration() const
 {
-    return 0.25;
+    return m_duration;
 }
 
 bool KickProducer::hasExpired() const

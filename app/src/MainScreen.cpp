@@ -409,7 +409,7 @@ void MainScreen::updateEngineSounds()
         if(engine->rpm < 1.0) continue;
 
         
-        KickProducer* p = new KickProducer(throttleSoundLevel, std::max(0.0, std::min(rpm / 4000.0, 1.0)));
+        KickProducer* p = new KickProducer(throttleSoundLevel, std::max(0.0, std::min(rpm / 4000.0, 1.0)), 0.016 * (engine->revLimit / engine->rpm) / nbCyl);
         //KickProducer* p = new KickProducer(6.0f, std::max(0.0, std::min(rpm / 4000.0, 1.0)));
         audStream.playEventAt(SoundEvent(p), elapse + 0.03 + (interval / nbCyl) * 0.5f * volumes[cylIndex]);
     }

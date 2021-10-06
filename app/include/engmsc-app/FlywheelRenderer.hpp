@@ -39,6 +39,7 @@ public:
     
 
     static void initialize();
+    static void destroy();
     static void draw();
 
     static Engine* getEngine();

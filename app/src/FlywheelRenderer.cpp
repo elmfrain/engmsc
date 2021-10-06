@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include <iostream>
 #include <cstring>
+#include <thread>
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -81,6 +82,25 @@ static void updateGearbox();
 static FlywheelRenderer::Engine* engine = new FlywheelRenderer::Engine();
 static FlywheelRenderer::Gearbox* gearbox = new FlywheelRenderer::Gearbox();
 
+using namespace std::chrono;
+static const high_resolution_clock::duration PHYSICS_INTERVAL = duration_cast<high_resolution_clock::duration>(duration<double>(1.0 / 40.0)); //Physics running at 40fps
+static bool physicsThreadRunning = true;
+static std::thread* powertrainPhysicsThread;
+static high_resolution_clock::time_point physicsThreadElapse;
+
+void i_powertrainPhysicsThread()
+{
+    physicsThreadElapse = high_resolution_clock::now();
+
+    while(physicsThreadRunning)
+    {
+        updateEngine();
+
+        physicsThreadElapse += PHYSICS_INTERVAL;
+        std::this_thread::sleep_until(physicsThreadElapse);
+    }
+}
+
 void FlywheelRenderer::Gearbox::setGear(int gear)
 {
     this->gear = std::max(0, std::min(gear, 7));
@@ -92,11 +112,20 @@ void FlywheelRenderer::initialize()
     setupMeshes();
     setupFramebuffer();
     lowPass.setup(60.0, 5.0);
+
+    powertrainPhysicsThread = new std::thread(i_powertrainPhysicsThread);
+}
+
+void FlywheelRenderer::destroy()
+{
+    physicsThreadRunning = false;
+    powertrainPhysicsThread->join();
+    delete powertrainPhysicsThread;
 }
 
 void FlywheelRenderer::draw()
 {
-    GLuint INSTANCES = 100;
+    GLuint INSTANCES = 50;
 
     updateEngine();
     
@@ -116,7 +145,7 @@ void FlywheelRenderer::draw()
     glUniformMatrix4fv(u_model, 1, false, glm::value_ptr(model));
     glUniform1f(u_numInstances, INSTANCES - 1);
     glUniform1f(u_angle, glm::radians(engine->angle));
-    glUniform1f(u_angleSpeed, glm::radians(engine->angleSpeed));
+    glUniform1f(u_angleSpeed, glm::radians(engine->angleSpeed / 2.0));
     glBindVertexArray(meshVAO);
     {
         //glDrawElements(GL_TRIANGLES, meshIndexSize, GL_UNSIGNED_INT, 0);
@@ -197,7 +226,7 @@ void setupMeshes()
 {
     Assimp::Importer importer;
 
-    const aiScene* assimpScene = importer.ReadFile("rsc/mesh/flywheel.ply", aiProcess_Triangulate);
+    const aiScene* assimpScene = importer.ReadFile("rsc/mesh/simple_flywheel.ply", aiProcess_Triangulate);
 
     if(assimpScene && assimpScene->HasMeshes())
     {
@@ -251,7 +280,7 @@ void setupFramebuffer()
     glGenRenderbuffers(1, &rbo);
 
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 8, GL_RGBA16F, 1280, 720);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA16F, 1280, 720);
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
     glBindFramebuffer(GL_FRAMEBUFFER, flywheelFBO);

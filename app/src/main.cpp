@@ -36,6 +36,7 @@ int main()
     }
 
     MainScreen::getScreen()->destroyAudioContext();
+    FlywheelRenderer::destroy();
     glfwTerminate();
     return 0;
 }
