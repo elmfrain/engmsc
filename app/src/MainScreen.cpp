@@ -54,7 +54,7 @@ namespace Callbacks
 }
 
 MainScreen::MainScreen() :
-    elapse(audStream.getTime()),
+    elapse(engineAudioStream.getTime()),
     prevInterval(interval)
 {
     initialize(glfwWindow, false);
@@ -62,8 +62,8 @@ MainScreen::MainScreen() :
 
     windProducer = new WindProducer();
     audCtx.initContext();
-    audCtx.addStream(audStream);
-    audStream.playEvent(SoundEvent(windProducer));
+    audCtx.addStream(engineAudioStream);
+    engineAudioStream.playEvent(SoundEvent(windProducer));
 
     setupEngineStatusWindow(0);
     setupPowertrainInputWindow(280);
@@ -391,7 +391,7 @@ void MainScreen::updateEngineSounds()
 
     FlywheelRenderer::Engine* engine = FlywheelRenderer::getEngine();
 
-    double now = audStream.getTime();
+    double now = engineAudioStream.getTime();
     double rpm = std::max(1.0, engine->rpm);
     prevInterval = interval;
     interval = 2.0 / (rpm / 60.0);
@@ -411,7 +411,7 @@ void MainScreen::updateEngineSounds()
         
         KickProducer* p = new KickProducer(throttleSoundLevel, std::max(0.0, std::min(rpm / 4000.0, 1.0)), 0.016 * (engine->revLimit / engine->rpm) / nbCyl);
         //KickProducer* p = new KickProducer(6.0f, std::max(0.0, std::min(rpm / 4000.0, 1.0)));
-        audStream.playEventAt(SoundEvent(p), elapse + 0.03 + (interval / nbCyl) * 0.5f * volumes[cylIndex]);
+        engineAudioStream.playEventAt(SoundEvent(p), elapse + 0.03 + (interval / nbCyl) * 0.5f * volumes[cylIndex]);
     }
 
     windProducer->setWindVelocity(FlywheelRenderer::getGearbox()->kmh);

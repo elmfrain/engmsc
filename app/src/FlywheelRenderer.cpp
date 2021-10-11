@@ -83,7 +83,7 @@ static FlywheelRenderer::Engine* engine = new FlywheelRenderer::Engine();
 static FlywheelRenderer::Gearbox* gearbox = new FlywheelRenderer::Gearbox();
 
 using namespace std::chrono;
-static const high_resolution_clock::duration PHYSICS_INTERVAL = duration_cast<high_resolution_clock::duration>(duration<double>(1.0 / 40.0)); //Physics running at 40fps
+static const high_resolution_clock::duration PHYSICS_INTERVAL = duration_cast<high_resolution_clock::duration>(duration<double>(1.0 / 140.0)); //Physics running at 40fps
 static bool physicsThreadRunning = true;
 static std::thread* powertrainPhysicsThread;
 static high_resolution_clock::time_point physicsThreadElapse;
@@ -127,7 +127,7 @@ void FlywheelRenderer::draw()
 {
     GLuint INSTANCES = 50;
 
-    updateEngine();
+    //updateEngine();
     
     glm::mat4 projection = glm::ortho(-1.7778f, 1.7778f, -1.0f, 1.0f, -1.0f, 1.0f);
     glm::mat4 model = glm::identity<glm::mat4>();

@@ -54,14 +54,18 @@ bool KickProducer::hasExpired() const
 const double SAMPLE_DURATION = 1.0 / SAMPLE_RATE;
 const float PI = 3.14159265f;
 
+#define sg 10.0
 #define F(x) (m_factor / (10 * double(x) / SAMPLE_RATE + 1))
 #define G(x) (1.0 / (10.0 * double(x) / SAMPLE_RATE + 1))
+#define S(x) ( (sg * x) / (1.0 + abs(sg * x)) )
 
 float KickProducer::genSample() const
 {
     float noise = 2.0f * float(rand()) / RAND_MAX - 1.0f;
-    float sample = sin((m_samplePos * 3.1415 * (50.0 + F(m_samplePos * 50))) / 44100) * 0.276f * G(m_samplePos * 6);
+    float sine = sin((m_samplePos * 3.1415 * (50.0 + F(m_samplePos * 50))) / 44100);
+    float sample = sine * 0.276f * G(m_samplePos * 6);
     sample += noise * 0.045f * G(m_samplePos * m_factor2 * 2.0f);
+    sample *= (0.2f + m_factor / 4000.0f);
     sample *= 1.0f - (m_samplePos * SAMPLE_DURATION) / getDuration();
 
     return sample;

@@ -23,7 +23,7 @@ size_t WindProducer::addOntoSamples(float* buffer, size_t bufferSize, float gain
     {
         double rnd = 2.0 * (double (rand()) / RAND_MAX) - 1.0f;
         
-        buffer[i] += m_lowPass.filter(rnd) * std::min(m_windVelocity / 150.0, 0.9);
+        buffer[i] += m_lowPass.filter(rnd) * std::min(m_windVelocity / 320.0, 0.4);
     }
 
     return bufferSize;

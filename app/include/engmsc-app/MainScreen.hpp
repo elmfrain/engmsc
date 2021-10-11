@@ -33,7 +33,7 @@ private:
     EngineConfig engineConfig;
 
     WindProducer* windProducer;
-    AudioStream audStream;
+    AudioStream engineAudioStream;
     ALAudioContext audCtx;
     double elapse;
     double interval = 1.0;
