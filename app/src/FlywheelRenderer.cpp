@@ -79,8 +79,8 @@ static void setupFramebuffer();
 static void updateEngine();
 static void updateGearbox();
 
-static FlywheelRenderer::Engine* engine = new FlywheelRenderer::Engine();
-static FlywheelRenderer::Gearbox* gearbox = new FlywheelRenderer::Gearbox();
+static FlywheelRenderer::Engine engine = FlywheelRenderer::Engine();
+static FlywheelRenderer::Gearbox gearbox = FlywheelRenderer::Gearbox();
 
 using namespace std::chrono;
 static const high_resolution_clock::duration PHYSICS_INTERVAL = duration_cast<high_resolution_clock::duration>(duration<double>(1.0 / 140.0)); //Physics running at 40fps
@@ -126,8 +126,6 @@ void FlywheelRenderer::destroy()
 void FlywheelRenderer::draw()
 {
     GLuint INSTANCES = 50;
-
-    //updateEngine();
     
     glm::mat4 projection = glm::ortho(-1.7778f, 1.7778f, -1.0f, 1.0f, -1.0f, 1.0f);
     glm::mat4 model = glm::identity<glm::mat4>();
@@ -144,8 +142,8 @@ void FlywheelRenderer::draw()
     glUniformMatrix4fv(u_projection, 1, false, glm::value_ptr(projection));
     glUniformMatrix4fv(u_model, 1, false, glm::value_ptr(model));
     glUniform1f(u_numInstances, INSTANCES - 1);
-    glUniform1f(u_angle, glm::radians(engine->angle));
-    glUniform1f(u_angleSpeed, glm::radians(engine->angleSpeed / 2.0));
+    glUniform1f(u_angle, glm::radians(engine.angle));
+    glUniform1f(u_angleSpeed, glm::radians(engine.angleSpeed / 2.0));
     glBindVertexArray(meshVAO);
     {
         //glDrawElements(GL_TRIANGLES, meshIndexSize, GL_UNSIGNED_INT, 0);
@@ -163,12 +161,12 @@ void FlywheelRenderer::draw()
 
 FlywheelRenderer::Engine* FlywheelRenderer::getEngine()
 {
-    return engine;
+    return &engine;
 }
 
 FlywheelRenderer::Gearbox* FlywheelRenderer::getGearbox()
 {
-    return gearbox;
+    return &gearbox;
 }
 
 static void setupShaders()
@@ -325,75 +323,75 @@ static double idlePID(double rpmTarget, double rpm)
 void updateEngine()
 {
     //Calculate Target Rpm
-    engine->idleTarget = std::max(680.0, -8.0 * (engine->coolantTemperature - 60.0) + 680.0);
+    engine.idleTarget = std::max(680.0, -8.0 * (engine.coolantTemperature - 60.0) + 680.0);
 
     //Random fluctuations in engine
     double rnd = lowPass.filter(2.0 * (double(rand()) / RAND_MAX) - 1.0);
 
     //Idle control valve PID
-    engine->idleThrottle = idlePID(engine->idleTarget, engine->rpm);
+    engine.idleThrottle = idlePID(engine.idleTarget, engine.rpm);
 
     //double powerBand = 1.0 - pow(engine->rpm - 0.8 * engine->revLimit, 2.0) / pow(0.8 * engine->revLimit, 2.0);
 
     //Air Fuel Mass per second calculation
-    double totalThrottle = std::max(MIN_THROTTLE, engine->throttle + engine->idleThrottle * 0.15);
+    double totalThrottle = std::max(MIN_THROTTLE, engine.throttle + engine.idleThrottle * 0.15);
     double allowableAirFlow = 1.0 - pow(totalThrottle - 1.0, 4.0);
-    engine->airFuelMassIntake = (engine->rpm * allowableAirFlow) / 50.0;
+    engine.airFuelMassIntake = (engine.rpm * allowableAirFlow) / 50.0;
 
     //Disable Spark When limiter is activated
-    engine->torque = 0.0;
+    engine.torque = 0.0;
 
-    if(!engine->limiterOn)
+    if(!engine.limiterOn)
     {
-        engine->torque = (engine->airFuelMassIntake) / (11.0 + 1.7 * rnd);
+        engine.torque = (engine.airFuelMassIntake) / (11.0 + 1.7 * rnd);
     }
 
     //Cranking starter
-    if(engine->isCranking)
+    if(engine.isCranking)
     {
-        engine->torque += 0.05f * sinf(engine->angle * 1.7453e-2) + 1.0f;
+        engine.torque += 0.05f * sinf(engine.angle * 1.7453e-2) + 1.0f;
     }
 
     //Calculate temperature
-    engine->coolantTemperature += engine->rpm * 1.43e-6 * (7500.0 / engine->revLimit);
-    if(engine->coolantTemperature > 71.0) //Open thermostat at 71c
-        engine->coolantTemperature -= (engine->coolantTemperature - ROOM_TEMPERATURE) * 1.11e-4;
+    engine.coolantTemperature += engine.rpm * 1.43e-6 * (7500.0 / engine.revLimit);
+    if(engine.coolantTemperature > 71.0) //Open thermostat at 71c
+        engine.coolantTemperature -= (engine.coolantTemperature - ROOM_TEMPERATURE) * 1.11e-4;
     else
-        engine->coolantTemperature -= (engine->coolantTemperature - ROOM_TEMPERATURE) * 2.78e-5;
+        engine.coolantTemperature -= (engine.coolantTemperature - ROOM_TEMPERATURE) * 2.78e-5;
 
     //Engine drag
-    engine->torque -= (8.0 * pow(engine->rpm, 2.0)) / pow(engine->revLimit, 2.0) + 0.2;
-    engine->torque *= 60.0;
+    engine.torque -= (8.0 * pow(engine.rpm, 2.0)) / pow(engine.revLimit, 2.0) + 0.2;
+    engine.torque *= 60.0;
 
     updateGearbox();
 
-    if (engine->rpm > engine->revLimit) engine->limiterOn = true;
-	else if (engine->limiterOn && engine->rpm < engine->revLimit - 800.0) engine->limiterOn = false;
+    if (engine.rpm > engine.revLimit) engine.limiterOn = true;
+	else if (engine.limiterOn && engine.rpm < engine.revLimit - 800.0) engine.limiterOn = false;
 
-    if (engine->angle > 360) { int a = (360 / (int)engine->angle) * 360; engine->angle -= a; }
+    if (engine.angle > 360) { int a = (360 / (int)engine.angle) * 360; engine.angle -= a; }
 }
 
 #define VEHCILE_SPEED_RATIO 3.76991184 //Converts degrees/frame to km/hr
 
 void updateGearbox()
 {
-    float gearRatio = gearbox->gear == 0 ? gearbox->gearRatios[0] : gearbox->gearRatios[gearbox->gear - 1];
-    gearRatio *= gearbox->finalDriveRatio;
+    float gearRatio = gearbox.gear == 0 ? gearbox.gearRatios[0] : gearbox.gearRatios[gearbox.gear - 1];
+    gearRatio *= gearbox.finalDriveRatio;
 
-    double breakTorque = (gearbox->brakeAmount * 27729.0) * 0.13;
-    double clutchTorque = gearbox->gear != 0 ? ((1.0 - gearbox->clutchAmount) * 6028.0) * 0.1 : 0.0;
-    clutchTorque = std::max(-clutchTorque, std::min(clutchTorque * 0.05 * (engine->angleSpeed - (gearbox->wheelAngleSpeed * gearRatio)), clutchTorque));
+    double breakTorque = (gearbox.brakeAmount * 27729.0) * 0.13;
+    double clutchTorque = gearbox.gear != 0 ? ((1.0 - gearbox.clutchAmount) * 6028.0) * 0.1 : 0.0;
+    clutchTorque = std::max(-clutchTorque, std::min(clutchTorque * 0.05 * (engine.angleSpeed - (gearbox.wheelAngleSpeed * gearRatio)), clutchTorque));
 
-    double dragForce = pow(gearbox->kmh * 0.25, 2.0);
-    gearbox->wheelAngleSpeed += (clutchTorque * gearRatio) / (gearbox->vehicleMass * gearbox->tireRadius) / 60.0;
-    gearbox->wheelAngleSpeed -= (dragForce / gearbox->vehicleMass) / 60.0;
-    gearbox->wheelAngleSpeed -= breakTorque / (gearbox->vehicleMass * gearbox->tireRadius) / 60.0;
-    gearbox->wheelAngleSpeed = std::max(0.0, gearbox->wheelAngleSpeed);
+    double dragForce = pow(gearbox.kmh * 0.25, 2.0);
+    gearbox.wheelAngleSpeed += (clutchTorque * gearRatio) / (gearbox.vehicleMass * gearbox.tireRadius) / 60.0;
+    gearbox.wheelAngleSpeed -= (dragForce / gearbox.vehicleMass) / 60.0;
+    gearbox.wheelAngleSpeed -= breakTorque / (gearbox.vehicleMass * gearbox.tireRadius) / 60.0;
+    gearbox.wheelAngleSpeed = std::max(0.0, gearbox.wheelAngleSpeed);
 
-    gearbox->kmh = gearbox->wheelAngleSpeed * VEHCILE_SPEED_RATIO * gearbox->tireRadius;
+    gearbox.kmh = gearbox.wheelAngleSpeed * VEHCILE_SPEED_RATIO * gearbox.tireRadius;
 
-    engine->angleSpeed += (engine->torque - clutchTorque) / engine->rotationalMass / 60.0;
-    engine->angleSpeed = std::max(0.0, engine->angleSpeed);
-    engine->angle += engine->angleSpeed;
-    engine->rpm = engine->angleSpeed * 10.0;
+    engine.angleSpeed += (engine.torque - clutchTorque) / engine.rotationalMass / 60.0;
+    engine.angleSpeed = std::max(0.0, engine.angleSpeed);
+    engine.angle += engine.angleSpeed;
+    engine.rpm = engine.angleSpeed * 10.0;
 }
