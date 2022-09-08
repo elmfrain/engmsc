@@ -2,6 +2,7 @@
 
 #include "Window.hpp"
 #include "MeshBuilder.hpp"
+#include "Logger.hpp"
 #include <glm/gtx/transform.hpp>
 
 int main(int argc, char* argv[])
@@ -18,6 +19,10 @@ int main(int argc, char* argv[])
 
     EMMeshBuilder mbTest(vtxFmt);
     mbTest.getModelView() = mbTest.getModelView() * glm::scale(glm::vec3(0.5f, 1.5f, 1.0f));
+
+    EMLogger mainLogger("Main");
+
+    mainLogger.infof("some info %d", 5);
 
     while(!window.shouldClose())
     {

@@ -13,6 +13,8 @@ add_executable(${PROJECT_NAME}
     src/Window.cpp
     src/UIRender.cpp
     src/MeshBuilder.cpp
+    src/Shaders.cpp
+    src/Logger.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
