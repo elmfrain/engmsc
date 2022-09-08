@@ -10,7 +10,7 @@ add_subdirectory("dep/glm")
 
 add_executable(${PROJECT_NAME}
     src/main.cpp
-    src/EMWindow.cpp
+    src/Window.cpp
     src/UIRender.cpp
     src/MeshBuilder.cpp
 )

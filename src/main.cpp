@@ -1,7 +1,8 @@
 #include <iostream>
 
-#include "EMWindow.hpp"
+#include "Window.hpp"
 #include "MeshBuilder.hpp"
+#include <glm/gtx/transform.hpp>
 
 int main(int argc, char* argv[])
 {
@@ -16,6 +17,7 @@ int main(int argc, char* argv[])
                               | EMVF_ATTRB_NORMALIZED_FALSE;
 
     EMMeshBuilder mbTest(vtxFmt);
+    mbTest.getModelView() = mbTest.getModelView() * glm::scale(glm::vec3(0.5f, 1.5f, 1.0f));
 
     while(!window.shouldClose())
     {
@@ -24,9 +26,12 @@ int main(int argc, char* argv[])
 
         mbTest.position(-0.5f, -0.5f, 0.0f)
         .position(0.5f, -0.5f, 0.0f)
-        .position(0.0f, 0.5f, 0.0f);
+        .position(0.5f, 0.5f, 0.0f)
+        .position(-0.5f, 0.5f, 0.0f)
+        .index(6, 0, 1, 3, 1, 2, 3);
 
-        mbTest.drawArrays(GL_TRIANGLES);
+        mbTest.drawElements(GL_TRIANGLES);
+        mbTest.reset();
 
         window.swapBuffers();
         glfwPollEvents();
