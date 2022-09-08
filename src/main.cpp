@@ -7,8 +7,6 @@ int main(int argc, char* argv[])
 {
     glfwInit();
 
-    glfwWindowHint(GLFW_SAMPLES, 4);
-
     EMWindow window(1280, 720, "Engmsc by Elmfer");
     EMVertexFormat vtxFmt;
     vtxFmt.size = 1;
@@ -16,8 +14,6 @@ int main(int argc, char* argv[])
                               | EMVF_ATTRB_TYPE_FLOAT
                               | EMVF_ATTRB_SIZE(3)
                               | EMVF_ATTRB_NORMALIZED_FALSE;
-
-    glEnable(GL_MULTISAMPLE);
 
     EMMeshBuilder mbTest(vtxFmt);
 
