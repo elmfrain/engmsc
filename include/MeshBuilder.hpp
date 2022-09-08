@@ -106,11 +106,40 @@ struct EMVertexFormat
 class EMMeshBuilder
 {
 public:
-    EMMeshBuilder();
+    EMMeshBuilder(const EMVertexFormat& vtxFmt);
+    EMMeshBuilder(const EMMeshBuilder&) = delete;
+    ~EMMeshBuilder();
 
     float defaultNormal[3];
     float defaultUV[2];
     float defaultColor[4];
+
+    void reset();
+    void drawArrays(GLenum mode);
+    void drawElements(GLenum mode);
+
+    EMMeshBuilder& position(float x, float y, float z);
+    EMMeshBuilder& normal(float x, float y, float z);
+    EMMeshBuilder& normalDefault();
+    EMMeshBuilder& uv(float u, float v);
+    EMMeshBuilder& uvDefault();
+    EMMeshBuilder& colorRGB(float r, float g, float b);
+    EMMeshBuilder& colorRGBA(float r, float g, float b, float a);
+    EMMeshBuilder& colorDefault();
+    EMMeshBuilder& texid(uint32_t texid);
+
+    EMMeshBuilder& vertex(void* notUsed, ...);
+    EMMeshBuilder& index(size_t numIndicies, ...);
+    EMMeshBuilder& indexv(size_t numIndicies, const uint32_t* indicies);
+
+    const EMVertexFormat& getVertexFormat() const;
+    const uint8_t* getVertexBuffer(size_t* getNumBytes) const;
+    const uint32_t* getIndexBuffer(size_t* getNumBytes) const;
+
+    void pushMatrix();
+    void popMatrix();
+    void resetMatrixStack();
+    glm::mat4& getModelView();
 private:
     EMVertexFormat m_vertexFormat;
 
@@ -129,8 +158,15 @@ private:
     bool m_isRenderable;
     size_t m_numVerticies;
     size_t m_numIndicies;
-    size_t m_vertexDataPos;
-    size_t m_indexDataPos;
+
+    // Buffers
+    std::vector<uint8_t> m_vertexDataBuffer;
+    std::vector<uint8_t> m_indexDataBuffer;
+
+    void initForRendering();
+    void pushVertexData(size_t size, const void* data);
+    void pushIndexData(size_t size, const void* data);
+    void get3x3ModelView();
 };
 
 #endif // MESH_BUILDER_HPP
