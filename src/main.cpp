@@ -2,16 +2,18 @@
 
 #include <GLFW/glfw3.h>
 
+#include "EMWindow.hpp"
+
 int main(int argc, char* argv[])
 {
     glfwInit();
 
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Engmsc - Elmfer", NULL, NULL);
+    EMWindow window(1280, 720, "Engmsc by Elmfer");
 
-    while(!glfwWindowShouldClose(window))
+    while(!window.shouldClose())
     {
+        window.swapBuffers();
         glfwPollEvents();
-        glfwSwapBuffers(window);
     }
 
     glfwTerminate();
