@@ -1,7 +1,7 @@
 #ifndef EMWINDOW_HPP
 #define EMWINDOW_HPP
 
-#include <GLFW/glfw3.h>
+#include "GLFWInclude.hpp"
 
 class EMWindow
 {

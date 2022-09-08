@@ -1,8 +1,7 @@
 #include <iostream>
 
-#include <GLFW/glfw3.h>
-
 #include "EMWindow.hpp"
+#include "GLInclude.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -12,6 +11,9 @@ int main(int argc, char* argv[])
 
     while(!window.shouldClose())
     {
+        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
         window.swapBuffers();
         glfwPollEvents();
     }
