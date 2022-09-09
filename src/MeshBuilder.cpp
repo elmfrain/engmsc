@@ -81,7 +81,7 @@ void EMMeshBuilder::drawArrays(GLenum mode)
     }
 
     glBindVertexArray(m_glVAO);
-    glDrawArrays(mode, 0, m_numVerticies);
+    glDrawArrays(mode, 0, (GLsizei) m_numVerticies);
     glBindVertexArray(0);
 }
 
@@ -114,7 +114,7 @@ void EMMeshBuilder::drawElements(GLenum mode)
     }
 
     glBindVertexArray(m_glVAO);
-    glDrawElements(mode, m_numIndicies, GL_UNSIGNED_INT, NULL);
+    glDrawElements(mode, m_numIndicies, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
 
@@ -219,7 +219,7 @@ EMMeshBuilder& EMMeshBuilder::vertex(void* notUsed, ...)
             posAttribSize = attribSize;
         }
 
-        for(int j = 0; j < attribSize; j++)
+        for(uint32_t j = 0; j < attribSize; j++)
         {
             switch(attribType)
             {
@@ -242,7 +242,7 @@ EMMeshBuilder& EMMeshBuilder::vertex(void* notUsed, ...)
                 newVtxBufferPos += sizeof(uint8_t);
                 break;
             case EMVF_ATTRB_TYPE_FLOAT:
-                valuef = va_arg(attribArgs, double);
+                valuef = (float) va_arg(attribArgs, double);
                 memcpy(newVtxBuffer + newVtxBufferPos, &valuef, sizeof(float));
                 newVtxBufferPos += sizeof(float);
                 break;
@@ -281,7 +281,7 @@ EMMeshBuilder& EMMeshBuilder::index(size_t numIndicies, ...)
 
     for(size_t i = 0; i < numIndicies; i++)
     {
-        indicies[i] = va_arg(indexArgs, uint32_t) + m_numIndicies;
+        indicies[i] = va_arg(indexArgs, uint32_t) + (uint32_t) m_numVerticies;
     }
 
     va_end(indexArgs);
@@ -298,7 +298,7 @@ EMMeshBuilder& EMMeshBuilder::indexv(size_t numIndicies, const uint32_t* indicie
     size_t bufferedIndiciesPos = 0;
     for(size_t i = 0; i < numIndicies; i++)
     {
-        bufferedIndicies[bufferedIndiciesPos++] = indicies[i] + m_numIndicies;
+        bufferedIndicies[bufferedIndiciesPos++] = indicies[i] + (uint32_t) m_numVerticies;
 
         if(128 <= bufferedIndiciesPos)
         {
