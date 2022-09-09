@@ -3,7 +3,10 @@
 #include "Window.hpp"
 #include "MeshBuilder.hpp"
 #include "Logger.hpp"
+#include "Shaders.hpp"
 #include <glm/gtx/transform.hpp>
+
+EMLogger mainLogger("Main");
 
 int main(int argc, char* argv[])
 {
@@ -18,11 +21,11 @@ int main(int argc, char* argv[])
                               | EMVF_ATTRB_NORMALIZED_FALSE;
 
     EMMeshBuilder mbTest(vtxFmt);
-    mbTest.getModelView() = mbTest.getModelView() * glm::scale(glm::vec3(0.5f, 1.5f, 1.0f));
-
-    EMLogger mainLogger("Main");
 
     mainLogger.infof("some info %d", 5);
+
+    ems::setColor(0.0f, 1.0f, 0.0f, 1.0f);
+    ems::POS_shader();
 
     while(!window.shouldClose())
     {
