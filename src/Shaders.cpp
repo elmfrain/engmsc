@@ -174,6 +174,11 @@ namespace ems
         return m_color;
     }
 
+    int getMaxTextureUnits()
+    {
+        return m_maxTexUnits;
+    }
+
     void setProjectionMatrix(const glm::mat4& projection)
     {
         m_projectionMatrix = projection;
@@ -229,7 +234,7 @@ static void i_init()
         m_texUnits[i] = i;
     }
 
-    m_logger.infof("Initialized Shaders Module");
+    m_logger.infof("Initialized Module");
     m_hasShadersInit = true;
 }
 

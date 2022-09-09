@@ -8,6 +8,7 @@ namespace ems
     const glm::mat4& getProjectionMatrix();
     const glm::mat4& getModelviewMatrix();
     const glm::vec4& getColor();
+    int getMaxTextureUnits();
 
     void setProjectionMatrix(const glm::mat4& projection);
     void setModelviewMatrix(const glm::mat4& modelview);
