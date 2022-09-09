@@ -90,6 +90,11 @@ struct EMVertexFormat
     void apply() const;
     void unapply() const;
 
+    EMVertexAttribute& operator[](int index)
+    {
+        return attributes[index];
+    }
+
     inline int vertexNumBytes() const
     {
         int numBytes = 0;
