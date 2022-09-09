@@ -15,6 +15,7 @@ add_executable(${PROJECT_NAME}
     src/MeshBuilder.cpp
     src/Shaders.cpp
     src/Logger.cpp
+    src/Keyboard.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

@@ -2,6 +2,9 @@
 #define EMWINDOW_HPP
 
 #include "GLFWInclude.hpp"
+#include "Keyboard.hpp"
+
+#include <memory>
 
 class EMWindow
 {
@@ -10,6 +13,7 @@ public:
     EMWindow(const EMWindow&) = delete;
 
     GLFWwindow* getHandle() const;
+    const EMKeyboard& getKeyboard() const;
 
     int getWidth() const;
     int getHeight() const;
@@ -25,6 +29,8 @@ private:
     GLFWwindow* m_glfwWindow;
     int m_width;
     int m_height;
+
+    std::unique_ptr<EMKeyboard> m_keyboard;
 
     unsigned int m_numFrames;
 };

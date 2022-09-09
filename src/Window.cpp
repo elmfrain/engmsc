@@ -26,12 +26,19 @@ EMWindow::EMWindow(int width, int height, const char* title) :
         m_gladHasInit = true;
     }
 
+    m_keyboard.reset(new EMKeyboard(m_glfwWindow));
+
     windowHandles[m_glfwWindow] = this;
 }
 
 GLFWwindow* EMWindow::getHandle() const
 {
     return m_glfwWindow;
+}
+
+const EMKeyboard& EMWindow::getKeyboard() const
+{
+    return *m_keyboard;
 }
 
 int EMWindow::getWidth() const
@@ -56,6 +63,7 @@ bool EMWindow::shouldClose() const
 
 void EMWindow::swapBuffers()
 {
+    m_keyboard->pollInputs();
     glfwSwapBuffers(m_glfwWindow);
     m_numFrames++;
 }

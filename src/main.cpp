@@ -16,11 +16,15 @@ int main(int argc, char* argv[])
     glfwInit();
 
     EMWindow window(1280, 720, "Engmsc by Elmfer");
+    const EMKeyboard& keyboard = window.getKeyboard();
     emui::setWindow(window);
 
     while(!window.shouldClose())
     {
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+        if(keyboard.isKeyPressed(GLFW_KEY_SPACE)) 
+            glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+
         glClear(GL_COLOR_BUFFER_BIT);
 
         emui::setupUIRendering();
