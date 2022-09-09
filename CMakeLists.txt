@@ -16,6 +16,7 @@ add_executable(${PROJECT_NAME}
     src/Shaders.cpp
     src/Logger.cpp
     src/Keyboard.cpp
+    src/Mouse.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}

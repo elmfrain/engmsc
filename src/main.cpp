@@ -15,9 +15,16 @@ int main(int argc, char* argv[])
 
     glfwInit();
 
+    glfwWindowHint(GLFW_SAMPLES, 4);
+
     EMWindow window(1280, 720, "Engmsc by Elmfer");
     const EMKeyboard& keyboard = window.getKeyboard();
+    const EMMouse& mouse = window.getMouse();
     emui::setWindow(window);
+
+    glEnable(GL_MULTISAMPLE);
+
+    float y = 0;
 
     while(!window.shouldClose())
     {
@@ -27,10 +34,18 @@ int main(int argc, char* argv[])
 
         glClear(GL_COLOR_BUFFER_BIT);
 
+        if(mouse.justScrolled())
+        {
+            y += mouse.scrollDeltaY() * 10;
+        }
+
         emui::setupUIRendering();
+
         emui::genQuad(100, 100, 200, 200, -1);
         emui::genHorizontalLine(500, 50, 1000, 0xFF000000, 2);
-        emui::genLine(300, 300, 600, 0, 0xFFFF0000, 5);
+        emui::genLine(300, y, mouse.cursorX(), mouse.cursorY(),
+        mouse.isButtonPressed(GLFW_MOUSE_BUTTON_1) ? 0xFFFF0000 : 0xFF00FF00, 5);
+
         emui::renderBatch();
 
         window.swapBuffers();

@@ -3,6 +3,7 @@
 
 #include "GLFWInclude.hpp"
 #include "Keyboard.hpp"
+#include "Mouse.hpp"
 
 #include <memory>
 
@@ -14,6 +15,7 @@ public:
 
     GLFWwindow* getHandle() const;
     const EMKeyboard& getKeyboard() const;
+    const EMMouse& getMouse() const;
 
     int getWidth() const;
     int getHeight() const;
@@ -31,6 +33,7 @@ private:
     int m_height;
 
     std::unique_ptr<EMKeyboard> m_keyboard;
+    std::unique_ptr<EMMouse> m_mouse;
 
     unsigned int m_numFrames;
 };
