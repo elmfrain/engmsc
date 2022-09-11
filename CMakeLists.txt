@@ -17,6 +17,8 @@ add_executable(${PROJECT_NAME}
     src/Logger.cpp
     src/Keyboard.cpp
     src/Mouse.cpp
+    src/FontRenderer.cpp
+    src/stb_image.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
