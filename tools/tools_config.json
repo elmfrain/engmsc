@@ -15,19 +15,22 @@
             {
                 "font_struct_template":
                 [
-                    "struct {name}_Font",
+                    "struct {name}_Font : public EMFontRenderer::Font",
                     "{{",
-                    "    const char* name = \"{name}\";",
-                    "    const int fontHeight = {font_height};",
-                    "    const int lineHeight = {line_height};",
+                    "    {name}_Font()",
+                    "    {{",
+                    "        name = \"{name}\";",
+                    "        fontHeight = {font_height};",
+                    "        lineHeight = {line_height};",
                     "",
-                    "    const int leftPadding = {left_pad};",
-                    "    const int rightPadding = {right_pad};",
-                    "    const int topPadding = {top_pad};",
-                    "    const int bottomPadding = {bottom_pad};",
-                    "    const int* glyphs = {glyphs_ptr};",
-                    "    const unsigned char* atlas = {tex_png};",
-                    "    const int numGlyphs = {num_glyphs};",
+                    "        leftPadding = {left_pad};",
+                    "        rightPadding = {right_pad};",
+                    "        topPadding = {top_pad};",
+                    "        bottomPadding = {bottom_pad};",
+                    "",
+                    "        glyphs = {glyphs_ptr};",
+                    "        atlas = {tex_png};",
+                    "        numGlyphs = {num_glyphs};",
                     "}};"
                 ]
             }

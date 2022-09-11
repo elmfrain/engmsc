@@ -142,9 +142,9 @@ def write_glyph_data():
         elif token == "xadvance":
             glyphs[-1].xadvance = int(next(fnt_stream))
 
-    header_file.write("const int %s_glyphData[] =\n{\n" % fnt_img_name)
+    header_file.write("const EMFontRenderer::Glyph %s_glyphData[] =\n{\n" % fnt_img_name)
     
-    glyph_template = "    {0:4d}, {1:4d}, {2:4d}, {3:4d}, {4:4d}, {5:4d}, {6:4d},\n"
+    glyph_template = "    {{{0:4d}, {1:4d}, {2:4d}, {3:4d}, {4:4d}, {5:4d}, {6:4d}}},\n"
     for i in range(255):
         glyph = Glyph()
         for g in glyphs:
