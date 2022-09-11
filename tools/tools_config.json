@@ -1,0 +1,11 @@
+{
+    "readme_file": "README.txt",
+    "scripts":
+    {
+        "tools_core.py":
+        {
+            "name": "Tools Core",
+            "summary": "Python module for managing all tool scripts."
+        }
+    }
+}
