@@ -6,6 +6,31 @@
         {
             "name": "Tools Core",
             "summary": "Python module for managing all tool scripts."
+        },
+        "font_converter.py":
+        {
+            "name": "Font Converter",
+            "summary": "Create a header file containing font data.",
+            "options":
+            {
+                "font_struct_template":
+                [
+                    "struct {name}_Font",
+                    "{{",
+                    "    const char* name = \"{name}\";",
+                    "    const int fontHeight = {font_height};",
+                    "    const int lineHeight = {line_height};",
+                    "",
+                    "    const int leftPadding = {left_pad};",
+                    "    const int rightPadding = {right_pad};",
+                    "    const int topPadding = {top_pad};",
+                    "    const int bottomPadding = {bottom_pad};",
+                    "    const int* glyphs = {glyphs_ptr};",
+                    "    const unsigned char* atlas = {tex_png};",
+                    "    const int numGlyphs = {num_glyphs};",
+                    "}};"
+                ]
+            }
         }
     }
 }
