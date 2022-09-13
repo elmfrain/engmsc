@@ -38,7 +38,7 @@ namespace emui
     void genVerticalLine(float x, float startY, float endY, ColorARGB8 color, float thickness = 1.0f);
     void genHorizontalLine(float y, float startX, float endX, ColorARGB8 color, float thickness = 1.0f);
     void genLine(float x1, float y1, float x2, float y2, ColorARGB8 color, float thickness = 1.0f);
-    void genString(const char* text, float x, float y, Anchor anchor, ColorARGB8);
+    void genString(const char* text, float x, float y, ColorARGB8 color, Anchor anchor);
 
     float getUIWidth();
     float getUIHeight();

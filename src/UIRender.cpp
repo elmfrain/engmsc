@@ -3,6 +3,7 @@
 #include "MeshBuilder.hpp"
 #include "Shaders.hpp"
 #include "Logger.hpp"
+#include "FontRenderer.hpp"
 
 #include <assert.h>
 #include <memory>
@@ -21,6 +22,10 @@ static std::unique_ptr<EMMeshBuilder> m_meshBuilder;
 // Window
 static const EMWindow* m_currentWindow = NULL;
 static float m_UIscaleFactor = 1.0f;
+
+// Font Rendering
+static EMFontRenderer m_fontRenderer;
+static int m_fontAtlasTexUnit = 0;
 
 namespace emui
 {
@@ -61,6 +66,10 @@ namespace emui
 
         m_logger.infof("Initialized Module");
         m_hasInit = true;
+
+        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &m_fontAtlasTexUnit);
+        m_fontAtlasTexUnit = glm::min(m_fontAtlasTexUnit, 32);
+        m_fontRenderer.setAtlasTexUnit(m_fontAtlasTexUnit);
     }
 
     void setWindow(const EMWindow& window)
@@ -153,6 +162,12 @@ namespace emui
         m_meshBuilder->popMatrix();
     }
 
+    void genString(const char* text, float x, float y, ColorARGB8 color, Anchor anchor)
+    {
+        m_fontRenderer.setAnchor(anchor);
+        m_fontRenderer.genString(*m_meshBuilder, text, x, y, color);
+    }
+
     float getUIWidth()
     {
         return m_currentWindow->getWidth() / m_UIscaleFactor;
@@ -183,6 +198,8 @@ namespace emui
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        m_fontRenderer.bindAtlas();
 
         m_meshBuilder->drawElements(GL_TRIANGLES);
         m_meshBuilder->reset();
