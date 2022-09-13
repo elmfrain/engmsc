@@ -194,7 +194,7 @@ namespace emui
 
     void renderBatch()
     {
-        ems::POS_UV_COLOR_TEXID_shader();
+        ems::UI_shader();
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
