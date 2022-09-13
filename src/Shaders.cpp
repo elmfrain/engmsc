@@ -72,7 +72,7 @@ struct BasicShader
             glGetShaderInfoLog(vecShader, sizeof(log), NULL, log);
             
             m_logger.submodule("Vertex Shader")
-            .errorf("Compilation Failed:\n%s\n", log);
+            .errorf("%s Compilation Failed:\n%s\n", name, log);
 
             goto link;
         }
@@ -86,7 +86,7 @@ struct BasicShader
             glGetShaderInfoLog(fragShader, sizeof(log), NULL, log);
 
             m_logger.submodule("Fragment Shader")
-            .errorf("Compilation Failed:\n%s\n", log);
+            .errorf("%s Compilation Failed:\n%s\n", name, log);
         }
 
     link:
@@ -103,7 +103,7 @@ struct BasicShader
                 glGetProgramInfoLog(programID, sizeof(log), NULL, log);
 
                 m_logger.submodule("Program Shader")
-                .errorf("Linking Failed:\n%s\n", log);
+                .errorf("%s Linking Failed:\n%s\n", name, log);
             }
 
             u_projectionMatrix = glGetUniformLocation(programID, "u_projectionMatrix");
