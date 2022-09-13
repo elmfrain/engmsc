@@ -6,6 +6,8 @@
 #include "GLInclude.hpp"
 
 #include <glm/gtx/transform.hpp>
+#include <glm/gtx/string_cast.hpp>
+#include <string>
 
 EMLogger mainLogger("Main");
 
@@ -43,6 +45,7 @@ int main(int argc, char* argv[])
 
     while(!window.shouldClose())
     {
+        glViewport(0, 0, window.getWidth(), window.getHeight());
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         if(keyboard.isKeyPressed(GLFW_KEY_SPACE)) 
             glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -60,7 +63,8 @@ int main(int argc, char* argv[])
         emui::genHorizontalLine(500, 50, 1000, 0xFF000000, 2);
         emui::genLine(300, y, mouse.cursorX(), mouse.cursorY(),
         mouse.isButtonPressed(GLFW_MOUSE_BUTTON_1) ? 0xFFFF0000 : 0xFF00FF00, 5);
-        emui::genString("Test String", 0, 0, -1, 0);
+        glm::vec2 cursor(mouse.cursorX(), mouse.cursorY());
+        emui::genString(glm::to_string(cursor).c_str(), 0, 0, -1, emui::TOP_LEFT);
 
         emui::renderBatch();
 
