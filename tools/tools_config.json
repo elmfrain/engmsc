@@ -30,6 +30,7 @@
                     "",
                     "        glyphs = {glyphs_ptr};",
                     "        atlas = {tex_png};",
+                    "        atlasLen = sizeof({tex_png});",
                     "        numGlyphs = {num_glyphs};",
                     "    }}",
                     "}};"

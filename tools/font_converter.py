@@ -176,7 +176,7 @@ def write_font_struct():
         bottom_pad = fnt_pad_bottom,
         glyphs_ptr = fnt_img_name + "_glyphData",
         tex_png = fnt_img_name + "_png",
-        num_glyphs = fnt_num_glyphs
+        num_glyphs = 255 # Hardcoded for now
     ))
 
     print("Wrote font data")
