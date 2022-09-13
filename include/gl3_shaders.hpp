@@ -152,7 +152,7 @@ static const char* UI_SHADER_fcode =
 "uniform int u_maxTextures;\n"
 "\n"
 "#define FILL_TOL 0.55\n"
-"#define AA_TOL 0.4\n"
+"#define AA_TOL 0.445\n"
 "\n"
 "void main()\n"
 "{\n"
