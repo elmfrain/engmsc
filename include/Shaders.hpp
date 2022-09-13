@@ -19,6 +19,7 @@ namespace ems
     void POS_UV_shader();
     void POS_COLOR_shader();
     void POS_UV_COLOR_TEXID_shader();
+    void UI_shader();
 }
 
 #endif // EM_SHADERS_HPP

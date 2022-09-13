@@ -13,6 +13,7 @@
 #define U_MODELVIEW_M_BIT 1
 #define U_COLOR_BIT 2
 #define U_TEXTURES_BIT 3
+#define U_MAX_TEXTURES_BIT 4
 
 static glm::mat4 m_projectionMatrix(1.0f);
 static glm::mat4 m_modelviewMatrix(1.0f);
@@ -38,6 +39,7 @@ struct BasicShader
     GLuint u_modelViewMatrix;
     GLuint u_color;
     GLuint u_textures;
+    GLuint u_maxTextures;
     bool hasInit = false;
     const char* vcode;
     const char* fcode;
@@ -108,6 +110,7 @@ struct BasicShader
             u_modelViewMatrix = glGetUniformLocation(programID, "u_modelViewMatrix");
             u_color = glGetUniformLocation(programID, "u_color");
             u_textures = glGetUniformLocation(programID, "u_textures");
+            u_maxTextures = glGetUniformLocation(programID, "u_maxTextures");
         }
         else
         {
@@ -141,7 +144,8 @@ struct BasicShader
         u_Assert(glUniformMatrix4fv(u_projectionMatrix, 1, GL_FALSE, (float*) &m_projectionMatrix), U_PROJECTION_M_BIT)
         u_Assert(glUniformMatrix4fv(u_modelViewMatrix, 1, GL_FALSE, (float*) &m_modelviewMatrix), U_MODELVIEW_M_BIT)
         u_Assert(glUniform4fv(u_color, 1, (float*) &m_color), U_COLOR_BIT)
-        u_Assert(glUniform1iv(u_textures, m_maxTexUnits, m_texUnits);, U_TEXTURES_BIT);
+        u_Assert(glUniform1iv(u_textures, m_maxTexUnits, m_texUnits), U_TEXTURES_BIT);
+        u_Assert(glUniform1i(u_maxTextures, m_maxTexUnits), U_MAX_TEXTURES_BIT);
     }
 };
 
@@ -156,6 +160,9 @@ static BasicShader POS_COLOR_SHADER
 
 static BasicShader POS_UV_COLOR_TEXID_SHADER
 ("POS_UV_COLOR_TEXID", POS_UV_COLOR_TEXID_SHADER_vcode, POS_UV_COLOR_TEXID_SHADER_fcode);
+
+static BasicShader UI_SHADER
+("UI", UI_SHADER_vcode, UI_SHADER_fcode);
 
 namespace ems
 {
@@ -220,6 +227,11 @@ namespace ems
     void POS_UV_COLOR_TEXID_shader()
     {
         POS_UV_COLOR_TEXID_SHADER.use();
+    }
+
+    void UI_shader()
+    {
+        UI_SHADER.use();
     }
 }
 
