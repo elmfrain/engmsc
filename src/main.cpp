@@ -9,6 +9,21 @@
 
 EMLogger mainLogger("Main");
 
+void clearGLErrors()
+{
+    GLenum error;
+    do
+    {
+        error = glGetError();
+
+        if(error != GL_NO_ERROR)
+        {
+            mainLogger.submodule("OpenGL").errorf("ID: %d", error);
+        }
+    } while (error != GL_NO_ERROR);
+    
+}
+
 int main(int argc, char* argv[])
 {
     mainLogger.infof("Starting Up");
@@ -45,9 +60,11 @@ int main(int argc, char* argv[])
         emui::genHorizontalLine(500, 50, 1000, 0xFF000000, 2);
         emui::genLine(300, y, mouse.cursorX(), mouse.cursorY(),
         mouse.isButtonPressed(GLFW_MOUSE_BUTTON_1) ? 0xFFFF0000 : 0xFF00FF00, 5);
+        emui::genString("Test String", 0, 0, -1, 0);
 
         emui::renderBatch();
 
+        clearGLErrors();
         window.swapBuffers();
         glfwPollEvents();
     }
