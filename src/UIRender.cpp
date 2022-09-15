@@ -20,7 +20,7 @@ static EMLogger m_logger("UI Renderer");
 static std::unique_ptr<EMMeshBuilder> m_meshBuilder;
 
 // Window
-static const EMWindow* m_currentWindow = NULL;
+static EMWindow* m_currentWindow = NULL;
 static float m_UIscaleFactor = 1.0f;
 
 // Font Rendering
@@ -72,11 +72,16 @@ namespace emui
         m_fontRenderer.setAtlasTexUnit(m_fontAtlasTexUnit);
     }
 
-    void setWindow(const EMWindow& window)
+    void setWindow(EMWindow& window)
     {
         m_currentWindow = &window;
 
         init();
+    }
+
+    EMWindow& getWindow()
+    {
+        return *m_currentWindow;
     }
 
     void genQuad(float left, float top, float right ,float bottom, ColorARGB8 color, uint8_t texId)

@@ -30,7 +30,8 @@ namespace emui
     };
 
     void init();
-    void setWindow(const EMWindow& window);
+    void setWindow(EMWindow& window);
+    EMWindow& getWindow();
 
     void genQuad(float left, float top, float right, float bottom, ColorARGB8 color, uint8_t texId = 0);
     void genQuad(float left, float top, float right, float bottom, const glm::vec4& color, uint8_t texId = 0);
