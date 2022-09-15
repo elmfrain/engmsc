@@ -63,8 +63,10 @@ int main(int argc, char* argv[])
         emui::genHorizontalLine(500, 50, 1000, 0xFF000000, 2);
         emui::genLine(300, y, mouse.cursorX(), mouse.cursorY(),
         mouse.isButtonPressed(GLFW_MOUSE_BUTTON_1) ? 0xFFFF0000 : 0xFF00FF00, 5);
-        glm::vec2 cursor(mouse.cursorX(), mouse.cursorY());
-        emui::genString(glm::to_string(cursor).c_str(), 0, 0, -1, emui::TOP_LEFT);
+
+        char output[1024];
+        snprintf(output, 1023, "§n§l%.2f §r%.2f" ,mouse.cursorX(), mouse.cursorY());
+        emui::genString(output, mouse.cursorX(), mouse.cursorY(), -1, emui::TOP_CENTER);
 
         emui::renderBatch();
 

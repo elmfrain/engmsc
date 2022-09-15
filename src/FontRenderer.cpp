@@ -3,12 +3,14 @@
 #include <cstring>
 #include <glm/glm.hpp>
 #include <stb_image.h>
+#include <cstring>
 
 // Font placed here
 #include "Consolas_font.hpp"
 
 #include "GLInclude.hpp"
 #include "Logger.hpp"
+#include "UIRender.hpp"
 
 #define getVec4Color(intcolor)\
 { ((intcolor >> 16) & 0xFF) / 255.0f,\
@@ -16,6 +18,14 @@
   (intcolor & 0xFF) / 255.0f,\
   ((intcolor >> 24) & 0xFF) / 255.0f }
 #define vec4Color(vec4color) vec4color[0], vec4color[1], vec4color[2], vec4color[3]
+
+static const char* m_FORMATTING_KEYS = "0123456789abcdefklmnor";
+
+static const uint32_t m_COLOR_CODES[] = 
+{
+    0xFF000000, 0xFF0000AA, 0xFF00AA00, 0xFF00AAAA, 0xFFAA0000, 0xFFAA00AA, 0xFFFFAA00, 0xFFAAAAAA,
+    0xFF555555, 0xFF5555FF, 0xFF55FF55, 0xFF55FFFF, 0xFFFF5555, 0xFFFF55FF, 0xFFFFFF55, 0xFFFFFFFF
+};
 
 static EMLogger m_logger("Font Renderer");
 
@@ -99,16 +109,82 @@ void EMFontRenderer::genString(EMMeshBuilder& meshBuilder, const char* str, size
 {
     float xCursor = x;
 
+    bool bold = false;
+    bool strikethrough = false;
+    bool underline = false;
+    bool italic = false;
+    uint32_t charColor = 0xFFFFFFFF;
+
     for(int i = 0; i < strLen;)
     {
         int bytesRead = 0;
         int unicode = getUnicodeFromUTF8((const uint8_t*) &str[i], &bytesRead);
 
-        Glyph glyph = m_font.glyphs[unicode];
+        if(unicode == 167 && i + bytesRead < strLen)
+        {
+            char key[] = { (char) tolower((int) str[i + bytesRead]), (char) 0 };
+            int formatKey = (int) (strstr(m_FORMATTING_KEYS, key) - m_FORMATTING_KEYS);
 
-        genChar(meshBuilder, unicode, xCursor, y, 0.0f, color);
+            if(formatKey < 16)
+            {
+                if(formatKey < 0) formatKey = 15;
 
-        xCursor += (glyph.xAdvance - m_font.leftPadding - m_font.rightPadding) * m_scale;
+                strikethrough = false;
+                underline = false;
+                italic = false;
+                bold = false;
+                charColor = m_COLOR_CODES[formatKey];
+            }
+            else
+            {
+                switch(formatKey)
+                {
+                case 17:
+                    bold = true;
+                    break;
+                case 18:
+                    strikethrough = true;
+                    break;
+                case 19:
+                    underline = true;
+                    break;
+                case 20:
+                    italic = true;
+                    break;
+                case 21:
+                    bold = false;
+                    strikethrough = false;
+                    underline = false;
+                    italic = false;
+                    charColor = 0xFFFFFFFF;
+                    break;
+                }
+            }
+
+            i++;
+        }
+        else
+        {
+            Glyph glyph = m_font.glyphs[unicode];
+
+            float advance = (glyph.xAdvance - m_font.leftPadding - m_font.rightPadding) * m_scale;
+            float italics = italic ? m_textSize * 0.07f : 0;
+            glm::vec4 colorv4     = getVec4Color(color);
+            glm::vec4 charColorv4 = getVec4Color(charColor);
+            glm::vec4 mixedColor = colorv4 * charColorv4;
+
+            genChar(meshBuilder, unicode, xCursor, y, italics, bold, mixedColor);
+            if(strikethrough)
+            {
+                emui::genHorizontalLine(y + m_textSize / 2, xCursor, xCursor + advance, mixedColor, m_textSize * 0.09f);
+            }
+            if(underline)
+            {
+                emui::genHorizontalLine(y + m_textSize * 1.05f, xCursor, xCursor + advance, mixedColor, m_textSize * 0.09f);
+            }
+
+            xCursor += advance;
+        }
 
         i += bytesRead;
     }
@@ -175,13 +251,14 @@ int EMFontRenderer::getUnicodeFromUTF8(const uint8_t* str, int* bytesRead) const
     return unicode;
 }
 
-void EMFontRenderer::genChar(EMMeshBuilder& meshBuilder, int unicode, float x, float y, float italics, uint32_t color)
+void EMFontRenderer::genChar(EMMeshBuilder& meshBuilder, int unicode, float x, float y, float italics, bool bold, glm::vec4& color)
 {
     if(256 <= unicode) // Cannot handle unicodes more than 256 at the moment
     {
         return;
     }
 
+    int texUnit = m_texUnit + bold;
     Glyph glyph = m_font.glyphs[unicode];
 
     float left = (float) glyph.xOffset;
@@ -193,13 +270,11 @@ void EMFontRenderer::genChar(EMMeshBuilder& meshBuilder, int unicode, float x, f
     left += x; right += x;
     top += y; bottom += y;
 
-    glm::vec4 colorv4 = getVec4Color(color);
-
     meshBuilder.index(6, 0, 1, 2, 0, 2, 3);
-    meshBuilder.vertex(NULL, left  - italics, bottom, 0.0f, glyph.uvLeft , glyph.uvBottom, vec4Color(colorv4), m_texUnit);
-    meshBuilder.vertex(NULL, right - italics, bottom, 0.0f, glyph.uvRight, glyph.uvBottom, vec4Color(colorv4), m_texUnit);
-    meshBuilder.vertex(NULL, right + italics, top   , 0.0f, glyph.uvRight, glyph.uvTop   , vec4Color(colorv4), m_texUnit);
-    meshBuilder.vertex(NULL, left  + italics, top   , 0.0f, glyph.uvLeft,  glyph.uvTop   , vec4Color(colorv4), m_texUnit);
+    meshBuilder.vertex(NULL, left  - italics, bottom, 0.0f, glyph.uvLeft , glyph.uvBottom, vec4Color(color), texUnit);
+    meshBuilder.vertex(NULL, right - italics, bottom, 0.0f, glyph.uvRight, glyph.uvBottom, vec4Color(color), texUnit);
+    meshBuilder.vertex(NULL, right + italics, top   , 0.0f, glyph.uvRight, glyph.uvTop   , vec4Color(color), texUnit);
+    meshBuilder.vertex(NULL, left  + italics, top   , 0.0f, glyph.uvLeft,  glyph.uvTop   , vec4Color(color), texUnit);
 }
 
 void EMFontRenderer::initToRender()

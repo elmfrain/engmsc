@@ -83,7 +83,7 @@ private:
     int m_texUnit;
 
     int getUnicodeFromUTF8(const uint8_t* str, int* bytesRead) const;
-    void genChar(EMMeshBuilder& meshBuilder, int unicode, float x, float y, float italics, uint32_t color);
+    void genChar(EMMeshBuilder& meshBuilder, int unicode, float x, float y, float italics, bool bold, glm::vec4& color);
     void initToRender();
 };
 
