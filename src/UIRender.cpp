@@ -81,42 +81,56 @@ namespace emui
 
     void genQuad(float left, float top, float right ,float bottom, ColorARGB8 color, uint8_t texId)
     {
-        assert(texId <= ems::getMaxTextureUnits());
-
         glm::vec4 colorv4 = getVec4Color(color);
+
+        emui::genQuad(left, top, right, bottom, colorv4, texId);
+    }
+
+    void genQuad(float left, float top, float right, float bottom, const glm::vec4& color, uint8_t texId)
+    {
+        assert(texId <= ems::getMaxTextureUnits());
 
         m_meshBuilder->index(6, 0, 1, 2, 0, 2, 3);
         m_meshBuilder->
-        vertex(NULL,  left, bottom, 0.0f, 0.0f, 0.0f, vec4Color(colorv4), texId).
-        vertex(NULL, right, bottom, 0.0f, 1.0f, 0.0f, vec4Color(colorv4), texId).
-        vertex(NULL, right, top   , 0.0f, 1.0f, 1.0f, vec4Color(colorv4), texId).
-        vertex(NULL,  left, top   , 0.0f, 0.0f, 1.0f, vec4Color(colorv4), texId);
+        vertex(NULL,  left, bottom, 0.0f, 0.0f, 0.0f, vec4Color(color), texId).
+        vertex(NULL, right, bottom, 0.0f, 1.0f, 0.0f, vec4Color(color), texId).
+        vertex(NULL, right, top   , 0.0f, 1.0f, 1.0f, vec4Color(color), texId).
+        vertex(NULL,  left, top   , 0.0f, 0.0f, 1.0f, vec4Color(color), texId);
     }
 
     void genGradientQuad(float left, float top, float right, float bottom, ColorARGB8 startColor,
                          ColorARGB8 endColor, Direction direction, uint8_t texId)
     {
+        glm::vec4 startColorv4 = getVec4Color(startColor);
+        glm::vec4 endColorv4 = getVec4Color(endColor);
+
+        emui::genGradientQuad(left, top, right, bottom, startColorv4, endColorv4, direction, texId);
+    }
+
+    void genGradientQuad(float left, float top, float right, float bottom, const glm::vec4& startColor,
+                         const glm::vec4& endColor, Direction dir, uint8_t texId)
+    {
         assert(texId <= ems::getMaxTextureUnits());
 
         glm::vec4 c0, c1, c2, c3;
 
-        switch(direction)
+        switch(dir)
         {
         case TO_RIGHT:
-            c0 = c3 = getVec4Color(startColor);
-            c1 = c2 = getVec4Color(endColor);
+            c0 = c3 = startColor;
+            c1 = c2 = endColor;
             break;
         case TO_LEFT:
-            c1 = c2 = getVec4Color(startColor);
-            c0 = c3 = getVec4Color(endColor);
+            c1 = c2 = startColor;
+            c0 = c3 = endColor;
             break;
         case TO_TOP:
-            c0 = c1 = getVec4Color(startColor);
-            c2 = c3 = getVec4Color(endColor);
+            c0 = c1 = startColor;
+            c2 = c3 = endColor;
             break;
         default:
-            c2 = c3 = getVec4Color(startColor);
-            c0 = c1 = getVec4Color(endColor);
+            c2 = c3 = startColor;
+            c0 = c1 = endColor;
             break;
         }
 
@@ -132,14 +146,28 @@ namespace emui
     {
         const float thickness_2 = thickness / 2.0f;
 
-        genQuad(x - thickness_2, startY, x + thickness_2, endY, color);
+        emui::genQuad(x - thickness_2, startY, x + thickness_2, endY, color);
+    }
+
+    void genVerticalLine(float x, float startY, float endY, const glm::vec4& color, float thickness)
+    {
+        const float thickness_2 = thickness / 2.0f;
+
+        emui::genQuad(x - thickness_2, startY, x + thickness_2, endY, color);
     }
 
     void genHorizontalLine(float y, float startX, float endX, ColorARGB8 color, float thickness)
     {
         const float thickness_2 = thickness / 2.0f;
 
-        genQuad(startX, y - thickness_2, endX, y + thickness_2, color);
+        emui::genQuad(startX, y - thickness_2, endX, y + thickness_2, color);
+    }
+
+    void genHorizontalLine(float y, float startX, float endX, const glm::vec4& color, float thickness)
+    {
+        const float thickness_2 = thickness / 2.0f;
+
+        emui::genQuad(startX, y - thickness_2, endX, y + thickness_2, color);
     }
 
     void genLine(float x1, float y1, float x2, float y2, ColorARGB8 color, float thickness)

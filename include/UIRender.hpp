@@ -9,10 +9,10 @@ typedef int32_t Direction;
 typedef int32_t Anchor;
 
 #define getVec4Color(intcolor)\
-{ ((intcolor >> 16) & 0xFF) / 255.0f,\
-  ((intcolor >>  8) & 0xFF) / 255.0f,\
-  (intcolor & 0xFF) / 255.0f,\
-  ((intcolor >> 24) & 0xFF) / 255.0f }
+{   ((intcolor >> 16) & 0xFF) / 255.0f,\
+    ((intcolor >>  8) & 0xFF) / 255.0f,\
+    (intcolor & 0xFF) / 255.0f,\
+    ((intcolor >> 24) & 0xFF) / 255.0f }
 
 namespace emui
 {
@@ -33,11 +33,17 @@ namespace emui
     void setWindow(const EMWindow& window);
 
     void genQuad(float left, float top, float right, float bottom, ColorARGB8 color, uint8_t texId = 0);
+    void genQuad(float left, float top, float right, float bottom, const glm::vec4& color, uint8_t texId = 0);
     void genGradientQuad(float left, float top, float right, float bottom, ColorARGB8 startColor,
                          ColorARGB8 endColor, Direction dir = TO_BOTTOM, uint8_t texId = 0);
+    void genGradientQuad(float left, float top, float right, float bottom, const glm::vec4& startColor,
+                         const glm::vec4& endColor, Direction dir = TO_BOTTOM, uint8_t texId = 0);
     void genVerticalLine(float x, float startY, float endY, ColorARGB8 color, float thickness = 1.0f);
+    void genVerticalLine(float x, float startY, float endY, const glm::vec4& color, float thickness = 1.0f);
     void genHorizontalLine(float y, float startX, float endX, ColorARGB8 color, float thickness = 1.0f);
+    void genHorizontalLine(float y, float startX, float endX, const glm::vec4& color, float thickness = 1.0f);
     void genLine(float x1, float y1, float x2, float y2, ColorARGB8 color, float thickness = 1.0f);
+    void genLine(float x1, float y1, float x2, float y2, const glm::vec4& color, float thickness = 1.0f);
     void genString(const char* text, float x, float y, ColorARGB8 color, Anchor anchor);
 
     float getUIWidth();
