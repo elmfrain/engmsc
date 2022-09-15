@@ -65,8 +65,8 @@ int main(int argc, char* argv[])
         mouse.isButtonPressed(GLFW_MOUSE_BUTTON_1) ? 0xFFFF0000 : 0xFF00FF00, 5);
 
         char output[1024];
-        snprintf(output, 1023, "§n§l%.2f §r%.2f" ,mouse.cursorX(), mouse.cursorY());
-        emui::genString(output, mouse.cursorX(), mouse.cursorY(), -1, emui::TOP_CENTER);
+        snprintf(output, 1023, "§n§l%.2f §r%.2f 0xFF555555" ,mouse.cursorX(), mouse.cursorY());
+        emui::genString(output, mouse.cursorX(), mouse.cursorY(), -1, emui::CENTER);
 
         emui::renderBatch();
 

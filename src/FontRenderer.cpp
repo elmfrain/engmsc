@@ -73,11 +73,23 @@ float EMFontRenderer::getStringWidth(const char* str, size_t strLen) const
 {
     int cursor = 0;
 
-    for(size_t i = 0; i < strLen; i++)
+    for(int i = 0; i < strLen;)
     {
-        const Glyph& glyph = m_font.glyphs[str[i]];
+        int bytesRead = 0;
+        int unicode = getUnicodeFromUTF8((const uint8_t*) &str[i], &bytesRead);
         
-        cursor += glyph.xAdvance - m_font.leftPadding - 1;
+        if(unicode == 167 && i + bytesRead < strLen)
+        {
+            i++;
+        }
+        else
+        {
+            Glyph glyph = m_font.glyphs[unicode];
+
+            cursor += glyph.xAdvance - m_font.leftPadding - m_font.rightPadding;
+        }
+
+        i += bytesRead;
     }
 
     return cursor * m_scale;
@@ -107,6 +119,10 @@ int EMFontRenderer::getAnchor() const
 
 void EMFontRenderer::genString(EMMeshBuilder& meshBuilder, const char* str, size_t strLen, float x, float y, uint32_t color)
 {
+    glm::vec2 anch = anchor(str, strLen, x, y);
+    x = anch.x;
+    y = anch.y;
+
     float xCursor = x;
 
     bool bold = false;
@@ -275,6 +291,47 @@ void EMFontRenderer::genChar(EMMeshBuilder& meshBuilder, int unicode, float x, f
     meshBuilder.vertex(NULL, right - italics, bottom, 0.0f, glyph.uvRight, glyph.uvBottom, vec4Color(color), texUnit);
     meshBuilder.vertex(NULL, right + italics, top   , 0.0f, glyph.uvRight, glyph.uvTop   , vec4Color(color), texUnit);
     meshBuilder.vertex(NULL, left  + italics, top   , 0.0f, glyph.uvLeft,  glyph.uvTop   , vec4Color(color), texUnit);
+}
+
+glm::vec2 EMFontRenderer::anchor(const char* str, size_t strLen, float x, float y)
+{
+    glm::vec2 newPos;
+    float stringWidth = getStringWidth(str, strLen);
+    float stringHeight = m_textSize;
+
+    switch(m_anchor)
+    {
+    case EMFR_LEFT:
+    case EMFR_CENTER:
+    case EMFR_RIGHT:
+        newPos.y = y - stringHeight / 2.0f;
+        break;
+    case EMFR_BOTTOM_LEFT:
+    case EMFR_BOTTOM_CENTER:
+    case EMFR_BOTTOM_RIGHT:
+        newPos.y = y - stringHeight;
+        break;
+    default:
+        newPos.y = y;
+    }
+
+    switch(m_anchor)
+    {
+    case EMFR_TOP_CENTER:
+    case EMFR_CENTER:
+    case EMFR_BOTTOM_CENTER:
+        newPos.x = x - stringWidth / 2.0f;
+        break;
+    case EMFR_TOP_RIGHT:
+    case EMFR_RIGHT:
+    case EMFR_BOTTOM_RIGHT:
+        newPos.x = x - stringWidth;
+        break;
+    default:
+        newPos.x = x;
+    }
+
+    return newPos;
 }
 
 void EMFontRenderer::initToRender()

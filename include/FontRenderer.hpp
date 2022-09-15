@@ -84,6 +84,7 @@ private:
 
     int getUnicodeFromUTF8(const uint8_t* str, int* bytesRead) const;
     void genChar(EMMeshBuilder& meshBuilder, int unicode, float x, float y, float italics, bool bold, glm::vec4& color);
+    glm::vec2 anchor(const char* str, size_t strLen, float x, float y);
     void initToRender();
 };
 
