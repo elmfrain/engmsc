@@ -4,6 +4,7 @@
 #include "Logger.hpp"
 #include "UIRender.hpp"
 #include "GLInclude.hpp"
+#include "Button.hpp"
 
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -37,6 +38,8 @@ int main(int argc, char* argv[])
     EMWindow window(1280, 720, "Engmsc by Elmfer");
     const EMKeyboard& keyboard = window.getKeyboard();
     const EMMouse& mouse = window.getMouse();
+    EMButton test("Button");
+    test.x = test.y = 500;
     emui::setWindow(window);
 
     glEnable(GL_MULTISAMPLE);
@@ -67,6 +70,12 @@ int main(int argc, char* argv[])
         char output[1024];
         snprintf(output, 1023, "§n§l%.2f §r%.2f 0xFF555555" ,mouse.cursorX(), mouse.cursorY());
         emui::genString(output, mouse.cursorX(), mouse.cursorY(), -1, emui::CENTER);
+
+        test.draw();
+        if(test.justPressed())
+        {
+            mainLogger.infof("Clicked From Test Button");
+        }
 
         emui::renderBatch();
 
