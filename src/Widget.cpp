@@ -1,6 +1,10 @@
 #include "Widget.hpp"
 
 #include "UIRender.hpp"
+#include "Shaders.hpp"
+
+// Clipping (with viewports)
+std::stack<EMWidget::ClippingState> EMWidget::m_clippingStack;
 
 static int m_currentZLevel = 0;
 
@@ -116,6 +120,9 @@ float EMWidget::localCursorY() const
 
 void EMWidget::draw()
 {
+    m_modelView = ems::getModelviewMatrix();
+    m_modelView = m_modelView * emui::getModelView();
+
     const EMMouse& mouse = emui::getWindow().getMouse();
     updateHoverState();
 
@@ -143,13 +150,27 @@ void EMWidget::updateHoverState()
 {
     const EMMouse& mouse = emui::getWindow().getMouse();
 
-    glm::mat4 inverseModelView = glm::inverse(m_modelView);
+    if(m_clippingStack.empty())
+    {
+        m_clippingStack.emplace();
+    }
+
+    ClippingState clip = m_clippingStack.top();
+
+    glm::mat4 inverseModelView = glm::inverse(clip.modelView);
     glm::vec4 uiCursorWidget(
         mouse.cursorX() / emui::getUIScale(),
         mouse.cursorY() / emui::getUIScale(),
         0.0f,
         1.0f
     );
+    glm::vec4 uiCursorClip = uiCursorWidget;
+
+    uiCursorClip = inverseModelView * uiCursorClip;
+
+    bool cursorInBounds = clip.clipping ? uiCursorClip.x > clip.left && uiCursorClip.y > clip.top && uiCursorClip.x < clip.right && uiCursorClip.y < clip.bottom : true;
+    
+    inverseModelView = glm::inverse(m_modelView);
 
     uiCursorWidget = inverseModelView * uiCursorWidget;
     m_localCursor.x = uiCursorWidget.x - x;
@@ -157,5 +178,5 @@ void EMWidget::updateHoverState()
 
     bool hovered = uiCursorWidget.x >= x && uiCursorWidget.y >= y && uiCursorWidget.x < x + width && uiCursorWidget.y < y + height;
 
-    m_hovered = isOnCurrentZLevel() && hovered;
+    m_hovered = isOnCurrentZLevel() && hovered && cursorInBounds;
 }

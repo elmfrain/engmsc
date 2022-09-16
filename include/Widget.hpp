@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 #include <string>
+#include <stack>
 
 class EMWidget
 {
@@ -10,7 +11,8 @@ public:
     enum Type
     {
         WIDGET,
-        BUTTON
+        BUTTON,
+        VIEWPORT
     };
 
     static int getCurrentZLevel();
@@ -44,6 +46,17 @@ public:
 
     float x, y, width, height;
 protected:
+    // Clipping (with viewports)
+    struct ClippingState
+    {
+        glm::mat4 modelView;
+        float left, right, top, bottom;
+        bool clipping = false;
+    };
+    static std::stack<ClippingState> m_clippingStack;
+
+    glm::mat4 m_modelView;
+
     // Other Types of Widgets Overrides this
     virtual void doDraw();
     Type m_type;
@@ -53,7 +66,6 @@ private:
     bool m_enabled;
     int m_zLevel;
 
-    glm::mat4 m_modelView;
     glm::vec2 m_localCursor;
 
     bool m_justPressed;

@@ -21,6 +21,7 @@ add_executable(${PROJECT_NAME}
     src/stb_image.cpp
     src/Widget.cpp
     src/Button.cpp
+    src/Viewport.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
