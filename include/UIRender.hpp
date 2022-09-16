@@ -51,6 +51,14 @@ namespace emui
     float getUIHeight();
     float getUIScale();
 
+    void pushStack();
+    void scale(float x, float y);
+    void translate(float x, float y);
+    void rotate(float x, float y, float z);
+    void mult(const glm::mat4& val);
+    void popStack();
+    glm::mat4& getModelView();
+
     void setupUIRendering();
     void renderBatch();
 }

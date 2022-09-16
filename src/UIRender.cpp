@@ -216,6 +216,51 @@ namespace emui
         return m_UIscaleFactor;
     }
 
+    void pushStack()
+    {
+        m_meshBuilder->pushMatrix();
+    }
+
+    void scale(float x, float y)
+    {
+        glm::mat4& mat = m_meshBuilder->getModelView();
+
+        mat = glm::scale(mat, {x, y, 1.0f});
+    }
+
+    void translate(float x, float y)
+    {
+        glm::mat4& mat = m_meshBuilder->getModelView();
+
+        mat = glm::translate(mat, {x, y, 0.0f});
+    }
+
+    void rotate(float x, float y, float z)
+    {
+        glm::mat4& mat = m_meshBuilder->getModelView();
+
+        mat = glm::rotate(mat, glm::radians(x), {1, 0, 0});
+        mat = glm::rotate(mat, glm::radians(y), {0, 1, 0});
+        mat = glm::rotate(mat, glm::radians(z), {0, 0, 1});
+    }
+
+    void mult(const glm::mat4& val)
+    {
+        glm::mat4& mat = m_meshBuilder->getModelView();
+
+        mat = mat * val;
+    }
+
+    void popStack()
+    {
+        m_meshBuilder->popMatrix();
+    }
+
+    glm::mat4& getModelView()
+    {
+        return m_meshBuilder->getModelView();
+    }
+
     void setupUIRendering()
     {
         glm::mat4 projection = glm::ortho(0.0f, getUIWidth(), getUIHeight(), 0.0f, -500.0f, 500.0f);
