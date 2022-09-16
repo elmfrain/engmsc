@@ -9,7 +9,8 @@ class EMWidget
 public:
     enum Type
     {
-        WIDGET
+        WIDGET,
+        BUTTON
     };
 
     static int getCurrentZLevel();
@@ -45,12 +46,12 @@ public:
 protected:
     // Other Types of Widgets Overrides this
     virtual void doDraw();
+    Type m_type;
 private:
     bool m_hovered;
     bool m_visible;
     bool m_enabled;
     int m_zLevel;
-    Type m_type;
 
     glm::mat4 m_modelView;
     glm::vec2 m_localCursor;

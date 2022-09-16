@@ -6,6 +6,8 @@ EMButton::EMButton()
 {
     width = 180;
     height = 30;
+
+    m_type = BUTTON;
 }
 
 EMButton::EMButton(const char* text)
@@ -14,6 +16,8 @@ EMButton::EMButton(const char* text)
 
     width = 180;
     height = 30;
+
+    m_type = BUTTON;
 }
 
 void EMButton::doDraw()
