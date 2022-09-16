@@ -5,6 +5,7 @@
 #include "UIRender.hpp"
 #include "GLInclude.hpp"
 #include "Button.hpp"
+#include "Viewport.hpp"
 
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -34,12 +35,18 @@ int main(int argc, char* argv[])
     glfwInit();
 
     glfwWindowHint(GLFW_SAMPLES, 4);
+    glfwWindowHint(GLFW_STENCIL_BITS, 8);
 
     EMWindow window(1280, 720, "Engmsc by Elmfer");
     const EMKeyboard& keyboard = window.getKeyboard();
     const EMMouse& mouse = window.getMouse();
     EMButton test("Button");
-    test.x = test.y = 500;
+    test.x = test.y = 10;
+    EMViewport viewport;
+    viewport.x = 800;
+    viewport.y = 100;
+    viewport.width = 150;
+    viewport.height = 150;
     emui::setWindow(window);
 
     glEnable(GL_MULTISAMPLE);
@@ -53,7 +60,7 @@ int main(int argc, char* argv[])
         if(keyboard.isKeyPressed(GLFW_KEY_SPACE)) 
             glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
 
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         if(mouse.justScrolled())
         {
@@ -71,7 +78,10 @@ int main(int argc, char* argv[])
         snprintf(output, 1023, "§n§l%.2f §r%.2f 0xFF555555" ,mouse.cursorX(), mouse.cursorY());
         emui::genString(output, mouse.cursorX(), mouse.cursorY(), -1, emui::CENTER);
 
+        viewport.start(true);
         test.draw();
+        viewport.end();
+
         if(test.justPressed())
         {
             mainLogger.infof("Clicked From Test Button");
