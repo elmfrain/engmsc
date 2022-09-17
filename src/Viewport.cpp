@@ -49,6 +49,7 @@ void EMViewport::end()
         emui::renderBatch();
         glDisable(GL_STENCIL_TEST);
         m_wasClipping = false;
+        m_clippingStack.pop();
     }
 
     emui::popStack();
