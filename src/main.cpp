@@ -6,6 +6,8 @@
 #include "GLInclude.hpp"
 #include "Button.hpp"
 #include "Viewport.hpp"
+#include "Mesh.hpp"
+#include "Shaders.hpp"
 
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -51,6 +53,19 @@ int main(int argc, char* argv[])
 
     glEnable(GL_MULTISAMPLE);
 
+    EMMesh::Ptr mesh = EMMesh::load("res/arrow.ply")[0];
+
+    EMVertexFormat vtxFmt;
+    vtxFmt.size = 2;
+    vtxFmt[0].data = EMVF_ATTRB_USAGE_POS
+                   | EMVF_ATTRB_SIZE(3)
+                   | EMVF_ATTRB_TYPE_FLOAT;
+    vtxFmt[1].data = EMVF_ATTRB_USAGE_COLOR
+                   | EMVF_ATTRB_SIZE(4)
+                   | EMVF_ATTRB_TYPE_FLOAT;
+
+    mesh->makeRenderable(vtxFmt);
+
     float y = 0;
 
     while(!window.shouldClose())
@@ -60,12 +75,18 @@ int main(int argc, char* argv[])
         if(keyboard.isKeyPressed(GLFW_KEY_SPACE)) 
             glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if(mouse.justScrolled())
         {
             y += mouse.scrollDeltaY() * 10;
         }
+
+        ems::setProjectionMatrix(glm::perspective(glm::radians(70.0f), 1.8f, 0.01f, 10.0f));
+        ems::setModelviewMatrix(glm::translate(glm::vec3(0, 0, -3)));
+        ems::POS_COLOR_shader();
+        glEnable(GL_DEPTH_TEST);
+        mesh->render(GL_TRIANGLES);
 
         emui::setupUIRendering();
 
