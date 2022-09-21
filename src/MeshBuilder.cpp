@@ -342,17 +342,24 @@ const uint32_t* EMMeshBuilder::getIndexBuffer(size_t* getNumBytes) const
     return (uint32_t*) m_indexDataBuffer.data();
 }
 
-void EMMeshBuilder::pushMatrix()
+glm::mat4& EMMeshBuilder::pushMatrix()
 {
     m_modelViewStack.push(m_modelViewStack.top());
+    return m_modelViewStack.top();
 }
 
-void EMMeshBuilder::popMatrix()
+glm::mat4& EMMeshBuilder::popMatrix()
 {
+    if(m_modelViewStack.size() <= 1)
+    {
+        return m_modelViewStack.top();
+    }
+
     m_modelViewStack.pop();
+    return m_modelViewStack.top();
 }
 
-void EMMeshBuilder::resetMatrixStack()
+glm::mat4& EMMeshBuilder::resetMatrixStack()
 {
     while(!m_modelViewStack.empty())
     {
@@ -360,6 +367,7 @@ void EMMeshBuilder::resetMatrixStack()
     }
 
     m_modelViewStack.emplace(1.0f);
+    return m_modelViewStack.top();
 }
 
 glm::mat4& EMMeshBuilder::getModelView()

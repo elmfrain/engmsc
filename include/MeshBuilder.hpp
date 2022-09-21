@@ -141,9 +141,9 @@ public:
     const uint8_t* getVertexBuffer(size_t* getNumBytes) const;
     const uint32_t* getIndexBuffer(size_t* getNumBytes) const;
 
-    void pushMatrix();
-    void popMatrix();
-    void resetMatrixStack();
+    glm::mat4& pushMatrix();
+    glm::mat4& popMatrix();
+    glm::mat4& resetMatrixStack();
     glm::mat4& getModelView();
 private:
     EMVertexFormat m_vertexFormat;
