@@ -2,11 +2,23 @@ cmake_minimum_required(VERSION 3.1)
 
 project(engmsc)
 
+set(CMAKE_CXX_STANDARD 17)
+
 add_subdirectory("dep/glad")
 
 add_subdirectory("dep/glfw")
 
 add_subdirectory("dep/glm")
+
+set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF CACHE BOOL " " FORCE)
+set(ASSIMP_BUILD_OBJ_IMPORTER ON  CACHE BOOL " " FORCE)
+set(ASSIMP_BUILD_PLY_IMPORTER ON  CACHE BOOL " " FORCE)
+set(ASSIMP_NO_EXPORT          ON  CACHE BOOL " " FORCE)
+set(ASSIMP_BUILD_TESTS        OFF CACHE BOOL " " FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL " " FORCE)
+set(ASSIMP_INSTALL            OFF CACHE BOOL " " FORCE)
+set(BUILD_SHARED_LIBS         OFF CACHE BOOL " " FORCE)
+add_subdirectory("dep/assimp")
 
 add_executable(${PROJECT_NAME}
     src/main.cpp
@@ -22,12 +34,14 @@ add_executable(${PROJECT_NAME}
     src/Widget.cpp
     src/Button.cpp
     src/Viewport.cpp
+    src/Mesh.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
     glfw
     glm
     glad
+    assimp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
