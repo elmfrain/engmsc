@@ -20,7 +20,7 @@ std::vector<std::shared_ptr<EMMesh>> EMMesh::load(const char* filePath)
 
     Assimp::Importer importer;
 
-    const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
+    const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate);
 
     if(!scene)
     {
