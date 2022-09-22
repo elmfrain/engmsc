@@ -48,8 +48,13 @@ class EMTimer
 public:
     EMTimer(double tps);
 
-    double tps;
+    int ticksPassed();
+    double getTPS();
+    double partialTicks();
+    double lerp(double start, double end);
 private:
+    double m_tps;
+    double m_tickDelta;
     double m_nextTick;
 };
 

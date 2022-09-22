@@ -4,6 +4,7 @@
 
 #include <glm/glm.hpp>
 
+// -------------- Smoother Class Begin ------------------ //
 EMSmoother::EMSmoother() :
     m_acceleration(0.0),
     m_velocity(0.0),
@@ -120,4 +121,48 @@ void EMSmoother::update()
 
     m_value += m_velocity * delta;
     m_velocity *= glm::pow(0.0625 / (m_speed * m_friction), delta);
+}
+
+// -------------- Timer Class Begin ------------------ //
+
+EMTimer::EMTimer(double tps) :
+    m_tps(tps),
+    m_tickDelta(1.0 / m_tps),
+    m_nextTick(glfwGetTime())
+{
+}
+
+int EMTimer::ticksPassed()
+{
+    double currentTime = glfwGetTime();
+    double result = (m_nextTick - currentTime) / m_tickDelta;
+    
+    int i = 0;
+    while(m_nextTick < currentTime)
+    {
+        i++;
+        m_nextTick += m_tickDelta;
+    }
+
+    return i;
+}
+
+double EMTimer::getTPS()
+{
+    return m_tps;
+}
+
+double EMTimer::partialTicks()
+{
+    double currentTime = glfwGetTime();
+    double result = (m_nextTick - currentTime) / m_tickDelta;
+    result = 1 - result;
+
+    return 0 < result ? result : 0;
+}
+
+double EMTimer::lerp(double start, double end)
+{
+    double pT = partialTicks();
+    return start + (end - start) * pT;
 }
