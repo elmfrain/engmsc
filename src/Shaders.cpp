@@ -164,6 +164,9 @@ static BasicShader POS_UV_COLOR_TEXID_SHADER
 static BasicShader UI_SHADER
 ("UI", UI_SHADER_vcode, UI_SHADER_fcode);
 
+static BasicShader GAUGE_NEEDLE_SHADER
+("GAUGE_NEEDLE", GAUGE_NEEDLE_SHADER_vcode, GAUGE_NEEDLE_SHADER_fcode);
+
 namespace ems
 {
     const glm::mat4& getProjectionMatrix()
@@ -184,6 +187,11 @@ namespace ems
     int getMaxTextureUnits()
     {
         return m_maxTexUnits;
+    }
+
+    int getProgramID()
+    {
+        return m_currentBoundProgram;
     }
 
     void setProjectionMatrix(const glm::mat4& projection)
@@ -232,6 +240,11 @@ namespace ems
     void UI_shader()
     {
         UI_SHADER.use();
+    }
+
+    void GAUGE_NEEDLE_shader()
+    {
+        GAUGE_NEEDLE_SHADER.use();
     }
 }
 
