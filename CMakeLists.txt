@@ -35,6 +35,7 @@ add_executable(${PROJECT_NAME}
     src/Button.cpp
     src/Viewport.cpp
     src/Mesh.cpp
+    src/Animation.cpp
 
     src/engmsc/Gauge.cpp
 )
