@@ -185,6 +185,8 @@ void EMMesh::putMeshElements(EMMeshBuilder& meshBuilder) const
 
 void EMMesh::makeRenderable(EMVertexFormat vtxFmt)
 {
+    if(m_isRenderable) return;
+
     EMMeshBuilder meshBuilder(vtxFmt);
 
     putMeshElements(meshBuilder);
