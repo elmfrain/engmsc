@@ -107,6 +107,11 @@ void EMFontRenderer::setTextSize(float size)
     m_scale = size / m_font.fontHeight;
 }
 
+float EMFontRenderer::getTextSize() const
+{
+    return m_textSize;
+}
+
 void EMFontRenderer::setAnchor(int anchorEnum)
 {
     m_anchor = anchorEnum;
