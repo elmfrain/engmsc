@@ -235,6 +235,27 @@ void EMMesh::render(int mode) const
     glBindVertexArray(0);
 }
 
+void EMMesh::renderInstanced(int mode, int instances) const
+{
+    if(!m_isRenderable && !m_advised)
+    {
+        m_advised = true;
+        m_logger.submodule(getName()).warnf("Mesh has not yet been made renderable. Call makeRenderable first.");
+    }
+
+    if(m_glTexture)
+    {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_glTexture);
+    }
+
+    glBindVertexArray(m_glVAO);
+    {
+        glDrawElementsInstanced(mode, m_numIndicies, GL_UNSIGNED_INT, 0, instances);
+    }
+    glBindVertexArray(0);
+}
+
 const glm::vec3* EMMesh::getPositions() const
 {
     if(m_positions.empty()) return NULL;

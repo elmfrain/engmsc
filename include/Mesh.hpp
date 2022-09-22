@@ -27,6 +27,7 @@ public:
 
     void makeRenderable(EMVertexFormat vtxFmt);
     void render(int mode) const;
+    void renderInstanced(int mode, int instances) const;
 
     const glm::vec3* getPositions() const;
     const glm::vec2* getUVs() const;
