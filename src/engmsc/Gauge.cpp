@@ -36,9 +36,7 @@ const Vertex i_backingSegment[] =
 
 EMGauge::EMGauge() :
     m_minValue(0.0f),
-    m_maxValue(1.0f),
-    m_amount(0.0f),
-    m_value(0.0f)
+    m_maxValue(1.0f)
 {
     EMVertexFormat vtxFmt;
     vtxFmt.size = 2;
@@ -72,7 +70,8 @@ EMGauge::Profile& EMGauge::getProfile()
 void EMGauge::setValue(float value)
 {
     m_value = value;
-    m_amount = glm::max(0.0f, glm::min(m_value / (m_maxValue - m_minValue) + m_minValue, 1.0f));
+    float amount = m_value / (m_maxValue - m_minValue) + m_minValue;
+    m_smoother.grab(amount);
 }
 
 float EMGauge::getValue() const
@@ -205,7 +204,9 @@ void EMGauge::renderText()
 void EMGauge::renderNeedle()
 {
     glm::mat4* modelView = &m_meshBuilder->pushMatrix();
-    const float needleAngle = glm::radians(m_profile.markingGirth) * m_amount;
+    
+    const float amount = glm::max(0.0f, glm::min(m_smoother.getValuef(), 1.0f));
+    const float needleAngle = glm::radians(m_profile.markingGirth) * amount;
     const float arcOffset = glm::radians(360 - m_profile.markingGirth) / 2.0f + glm::radians(m_profile.tilt);
     *modelView = glm::rotate(*modelView, arcOffset + needleAngle, {0, 0, 1});
 

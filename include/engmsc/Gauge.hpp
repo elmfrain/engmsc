@@ -4,6 +4,7 @@
 #include "MeshBuilder.hpp"
 #include "Widget.hpp"
 #include "Mesh.hpp"
+#include "Animation.hpp"
 
 #include <memory>
 
@@ -39,8 +40,8 @@ private:
 
     float m_minValue;
     float m_maxValue;
-    float m_amount;
     float m_value;
+    EMSmoother m_smoother;
 
     void generateBacking();
     void generateMarkings();
