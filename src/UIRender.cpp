@@ -3,7 +3,6 @@
 #include "MeshBuilder.hpp"
 #include "Shaders.hpp"
 #include "Logger.hpp"
-#include "FontRenderer.hpp"
 
 #include <assert.h>
 #include <memory>
@@ -82,6 +81,11 @@ namespace emui
     EMWindow& getWindow()
     {
         return *m_currentWindow;
+    }
+
+    EMFontRenderer& getFontRenderer()
+    {
+        return m_fontRenderer;
     }
 
     void genQuad(float left, float top, float right ,float bottom, ColorARGB8 color, uint8_t texId)

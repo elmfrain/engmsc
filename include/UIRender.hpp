@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "Window.hpp"
+#include "FontRenderer.hpp"
 
 typedef int32_t ColorARGB8;
 typedef int32_t Direction;
@@ -32,6 +33,7 @@ namespace emui
     void init();
     void setWindow(EMWindow& window);
     EMWindow& getWindow();
+    EMFontRenderer& getFontRenderer();
 
     void genQuad(float left, float top, float right, float bottom, ColorARGB8 color, uint8_t texId = 0);
     void genQuad(float left, float top, float right, float bottom, const glm::vec4& color, uint8_t texId = 0);
