@@ -187,7 +187,7 @@ static const char* GAUGE_NEEDLE_SHADER_vcode =
 "uniform mat4 u_projectionMatrix;\n"
 "uniform mat4 u_modelViewMatrix;\n"
 "uniform float u_angleDelta;\n"
-"uniform float u_numInstances;"
+"uniform float u_numInstances;\n"
 "\n"
 "mat4 rotationMatrix(vec3 axis, float angle)\n"
 "{\n"

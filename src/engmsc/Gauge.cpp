@@ -15,6 +15,10 @@
 
 EMMesh::Ptr EMGauge::m_needleMesh;
 EMMesh::Ptr EMGauge::m_stubbyNeedleMesh;
+int EMGauge::u_angleDelta = 0;;
+int EMGauge::u_numInstances = 0;
+
+static bool m_hasInitShader = false;
 
 struct Vertex
 {
@@ -36,7 +40,10 @@ const Vertex i_backingSegment[] =
 
 EMGauge::EMGauge() :
     m_minValue(0.0f),
-    m_maxValue(1.0f)
+    m_maxValue(1.0f),
+    m_value(0.0f),
+    m_prevNeedleAngle(0.0f),
+    m_prevTime(0.0)
 {
     EMVertexFormat vtxFmt;
     vtxFmt.size = 2;
@@ -51,7 +58,7 @@ EMGauge::EMGauge() :
 
     m_meshBuilder = std::make_unique<EMMeshBuilder>(vtxFmt);
 
-    m_profile.radius = 200;
+    m_profile.radius = 300;
     m_profile.girth = 360;
     m_profile.markingGirth = 270;
     m_profile.tilt = 0;
@@ -59,7 +66,7 @@ EMGauge::EMGauge() :
     m_type = GAUGE;
 
     // Make sure needle mesh is ready
-    initMeshes(vtxFmt);
+    initRendering(vtxFmt);
 }
 
 EMGauge::Profile& EMGauge::getProfile()
@@ -204,7 +211,12 @@ void EMGauge::renderText()
 void EMGauge::renderNeedle()
 {
     glm::mat4* modelView = &m_meshBuilder->pushMatrix();
-    
+
+    const int motionblurSamples = 20;
+    const float motionBlurAmount = 0.025f;
+    const double time = glfwGetTime();
+    const float delta = float(time - m_prevTime);
+
     const float amount = glm::max(0.0f, glm::min(m_smoother.getValuef(), 1.0f));
     const float needleAngle = glm::radians(m_profile.markingGirth) * amount;
     const float arcOffset = glm::radians(360 - m_profile.markingGirth) / 2.0f + glm::radians(m_profile.tilt);
@@ -212,17 +224,23 @@ void EMGauge::renderNeedle()
 
     glm::mat4 prevShaderModelView = ems::getModelviewMatrix();
     ems::setModelviewMatrix(*modelView);
-    ems::POS_COLOR_shader();
+    ems::setColor(1.0f, 1.0f, 1.0f, 0.1f);
+    ems::GAUGE_NEEDLE_shader();
+    glUniform1f(u_angleDelta, motionBlurAmount * (needleAngle - m_prevNeedleAngle) / delta);
+    glUniform1f(u_numInstances, motionblurSamples);
 
-    if(m_profile.radius < 120) m_stubbyNeedleMesh->render(GL_TRIANGLES);
-    else m_needleMesh->render(GL_TRIANGLES);
+    if(m_profile.radius < 120) m_stubbyNeedleMesh->renderInstanced(GL_TRIANGLES, motionblurSamples);
+    else m_needleMesh->renderInstanced(GL_TRIANGLES, motionblurSamples);
 
     ems::setModelviewMatrix(prevShaderModelView);
+    ems::setColor(1.0f, 1.0f, 1.0f, 1.0f);
 
     m_meshBuilder->popMatrix();
+    m_prevNeedleAngle = needleAngle;
+    m_prevTime = time;
 }
 
-void EMGauge::initMeshes(EMVertexFormat& vtxFmt)
+void EMGauge::initRendering(EMVertexFormat& vtxFmt)
 {
     if(!m_needleMesh)
     {
@@ -231,5 +249,14 @@ void EMGauge::initMeshes(EMVertexFormat& vtxFmt)
 
         m_stubbyNeedleMesh = EMMesh::load("res/stubby_needle.ply")[0];
         m_stubbyNeedleMesh->makeRenderable(vtxFmt);
+    }
+
+    if(!m_hasInitShader)
+    {   
+        ems::GAUGE_NEEDLE_shader();
+        u_angleDelta = glGetUniformLocation(ems::getProgramID(), "u_angleDelta");
+        u_numInstances = glGetUniformLocation(ems::getProgramID(), "u_numInstances");
+
+        m_hasInitShader = true;
     }
 }

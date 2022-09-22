@@ -32,6 +32,10 @@ protected:
     static EMMesh::Ptr m_needleMesh;
     static EMMesh::Ptr m_stubbyNeedleMesh;
 
+    // Shader Uniforms
+    static int u_angleDelta;
+    static int u_numInstances;
+
     // Overrides EMWidget::doDraw()
     virtual void doDraw();
 private:
@@ -41,14 +45,16 @@ private:
     float m_minValue;
     float m_maxValue;
     float m_value;
+    float m_prevNeedleAngle;
     EMSmoother m_smoother;
+    double m_prevTime;
 
     void generateBacking();
     void generateMarkings();
     void renderText();
     void renderNeedle();
 
-    static void initMeshes(EMVertexFormat& vtxFmt);
+    static void initRendering(EMVertexFormat& vtxFmt);
 };
 
 #endif // EMGAUGE_HPP
