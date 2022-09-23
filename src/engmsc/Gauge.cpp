@@ -81,13 +81,19 @@ EMGauge::Profile& EMGauge::getProfile()
 void EMGauge::setValue(float value)
 {
     m_value = value;
-    float amount = m_value / (m_maxValue - m_minValue) + m_minValue;
+    float amount = (m_value - m_minValue) / (m_maxValue - m_minValue);
     m_smoother.grab(amount);
 }
 
 float EMGauge::getValue() const
 {
     return m_value;
+}
+
+void EMGauge::setRange(float minValue, float maxValue)
+{
+    m_minValue = minValue;
+    m_maxValue = maxValue;
 }
 
 void EMGauge::getRange(float* getMin, float* getMax) const
