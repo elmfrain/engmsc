@@ -17,9 +17,10 @@ public:
         float girth;
         float markingGirth;
         float tilt;
-        int numSegments = 64;
-        int numMarkings = 9;
-        int subdivisions = 4;
+        uint8_t numSegments = 64;
+        uint8_t numMarkings = 9;
+        uint8_t subdivisions = 4;
+        uint8_t precision = 0;
     };
     EMGauge();
 

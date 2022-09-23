@@ -220,13 +220,16 @@ void EMGauge::renderText()
 
     const float markArc = glm::radians(m_profile.markingGirth) / (m_profile.numMarkings - 1);
     const float arcOffset = glm::radians(360 - m_profile.markingGirth) / 2.0f + glm::radians(m_profile.tilt);
+    const float markAmount = (m_maxValue - m_minValue) / (m_profile.numMarkings - 1);
 
     *modelView = glm::rotate(*modelView, arcOffset, {0, 0, 1});
 
     for(int i = 0; i < m_profile.numMarkings; i++)
     {
+        char fmt[32];
+        snprintf(fmt, sizeof(fmt), "§l%%.%df", m_profile.precision);
         char text[128];
-        snprintf(text, sizeof(text), "§l%d", i);
+        snprintf(text, sizeof(text), fmt, m_minValue + i * markAmount);
 
         glm::vec4 textPlacement = *modelView * textCursor;
         emui::genString(text, textPlacement.x, textPlacement.y, 0xFFFFFFFF, emui::CENTER);
