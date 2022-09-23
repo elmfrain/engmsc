@@ -19,6 +19,7 @@ public:
         float tilt;
         int numSegments = 64;
         int numMarkings = 9;
+        int subdivisions = 4;
     };
     EMGauge();
 

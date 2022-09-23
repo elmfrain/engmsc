@@ -4,6 +4,7 @@
 #include "Shaders.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <numeric>
 
 #define layoutVertex(v) (const float)   v.pos.x,\
                         (const float)   v.pos.y,\
@@ -19,6 +20,7 @@ int EMGauge::u_angleDelta = 0;;
 int EMGauge::u_numInstances = 0;
 
 static bool m_hasInitShader = false;
+static int gcd(int a, int b);
 
 struct Vertex
 {
@@ -58,7 +60,7 @@ EMGauge::EMGauge() :
 
     m_meshBuilder = std::make_unique<EMMeshBuilder>(vtxFmt);
 
-    m_profile.radius = 300;
+    m_profile.radius = 200;
     m_profile.girth = 360;
     m_profile.markingGirth = 270;
     m_profile.tilt = 0;
@@ -151,20 +153,32 @@ void EMGauge::generateMarkings()
 {
     glm::mat4* modelView = &m_meshBuilder->pushMatrix();
 
-    const float markArc = glm::radians(m_profile.markingGirth) / (m_profile.numMarkings - 1);
+    const int twoPowSub = (int) glm::pow(2, m_profile.subdivisions - 1);
+    const int totalMarkings = (m_profile.numMarkings - 1) * (twoPowSub - 1) + m_profile.numMarkings;
+
+    const float markArc = glm::radians(m_profile.markingGirth) / (totalMarkings - 1);
     const float arcOffset = glm::radians(360 - m_profile.markingGirth) / 2.0f + glm::radians(m_profile.tilt);
     *modelView = glm::rotate(*modelView, arcOffset, {0, 0, 1});
 
-    for(int m = 0; m < m_profile.numMarkings; m++)
+    for(int m = 0; m < totalMarkings; m++)
     {   
+        int n = m % twoPowSub;
+        int gcd = std::gcd(n, twoPowSub);
         m_meshBuilder->index(6, 0, 1, 2, 0, 2, 3);
 
-        m_meshBuilder->
-        vertex(NULL, -0.014f, 0.73f, 0.0f, 1.0f, 1.0f, 1.0f, 0.9f).
-        vertex(NULL,  0.014f, 0.73f, 0.0f, 1.0f, 1.0f, 1.0f, 0.9f).
-        vertex(NULL,  0.014f, 0.87f, 0.0f, 1.0f, 1.0f, 1.0f, 0.9f).
-        vertex(NULL, -0.014f, 0.87f, 0.0f, 1.0f, 1.0f, 1.0f, 0.9f);
+        modelView = &m_meshBuilder->pushMatrix();
+        *modelView = glm::translate(*modelView, {0.0f, 0.9f, 0.0f});
 
+        float scale = n == 0 ? 1 : 1.0f / (twoPowSub / gcd) + 0.35f;
+        *modelView = glm::scale(*modelView, {scale, scale, 1.0f});
+
+        m_meshBuilder->
+        vertex(NULL, -0.014f,  0.00f, 0.0f, 1.0f, 1.0f, 1.0f, 0.9f).
+        vertex(NULL,  0.014f,  0.00f, 0.0f, 1.0f, 1.0f, 1.0f, 0.9f).
+        vertex(NULL,  0.014f, -0.14f, 0.0f, 1.0f, 1.0f, 1.0f, 0.9f).
+        vertex(NULL, -0.014f, -0.14f, 0.0f, 1.0f, 1.0f, 1.0f, 0.9f);
+
+        modelView = &m_meshBuilder->popMatrix();
         *modelView = glm::rotate(*modelView, markArc, {0, 0, 1});
     }
 
