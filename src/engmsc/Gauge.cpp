@@ -69,6 +69,8 @@ EMGauge::EMGauge() :
 
     // Make sure needle mesh is ready
     initRendering(vtxFmt);
+
+    applyProfile();
 }
 
 EMGauge::Profile& EMGauge::getProfile()
@@ -94,10 +96,19 @@ void EMGauge::getRange(float* getMin, float* getMax) const
     if(getMax) *getMax = m_maxValue;
 }
 
-void EMGauge::doDraw()
+void EMGauge::applyProfile()
 {
     m_meshBuilder->reset();
-    glm::mat4* modelView = &m_meshBuilder->getModelView();
+
+    glm::mat4* modelview = &m_meshBuilder->getModelView();
+
+    generateBacking();
+    generateMarkings();
+}
+
+void EMGauge::doDraw()
+{
+    glm::mat4* modelView = &m_meshBuilder->pushMatrix();
     *modelView = emui::getModelView();
 
     const float translateX = x + width / 2.0f;
@@ -106,14 +117,16 @@ void EMGauge::doDraw()
     *modelView = glm::translate(*modelView, {translateX, translateY, 0.0f});
     *modelView = glm::scale(*modelView, {m_profile.radius, m_profile.radius, 0.0f});
 
-    generateBacking();
-    generateMarkings();
-
+    glm::mat4 prevModelview = ems::getModelviewMatrix();
+    ems::setModelviewMatrix(*modelView);
     ems::POS_COLOR_shader();
     m_meshBuilder->drawElements(GL_TRIANGLES);
+    ems::setModelviewMatrix(prevModelview);
 
     renderText();
     renderNeedle();
+
+    m_meshBuilder->popMatrix();
 }
 
 void EMGauge::generateBacking()

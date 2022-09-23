@@ -29,6 +29,8 @@ public:
     float getValue() const;
     void setRange(float minValue, float maxValue);
     void getRange(float* getMin, float* getMax) const;
+
+    void applyProfile();
 protected:
     static EMMesh::Ptr m_needleMesh;
     static EMMesh::Ptr m_stubbyNeedleMesh;
