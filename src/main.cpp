@@ -44,7 +44,8 @@ int main(int argc, char* argv[])
     glEnable(GL_MULTISAMPLE);
 
     EMGauge gauge;
-    gauge.setText("§lRPMx1000");
+    gauge.setRange(0, 160);
+    gauge.setText("§lMPH");
 
     while(!window.shouldClose())
     {
@@ -59,7 +60,7 @@ int main(int argc, char* argv[])
 
         gauge.x = window.getWidth() / 2.0f;
         gauge.y = window.getHeight() / 2.0f;
-        gauge.setValue(mouse.cursorX() / 900.0f - 0.1f);
+        gauge.setValue(mouse.cursorX());
 
         gauge.draw();
 
