@@ -38,6 +38,7 @@ add_executable(${PROJECT_NAME}
     src/Animation.cpp
 
     src/engmsc/Gauge.cpp
+    src/engmsc/Engine2DRenderer.cpp
 )
 
 # Copy resources to build directory
