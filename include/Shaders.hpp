@@ -25,6 +25,7 @@ namespace ems
     // Special Shaders
     void UI_shader();
     void GAUGE_NEEDLE_shader();
+    void ENGINE2D_shader();
 }
 
 #endif // EM_SHADERS_HPP

@@ -167,6 +167,9 @@ static BasicShader UI_SHADER
 static BasicShader GAUGE_NEEDLE_SHADER
 ("GAUGE_NEEDLE", GAUGE_NEEDLE_SHADER_vcode, GAUGE_NEEDLE_SHADER_fcode);
 
+static BasicShader ENGINE2D_SHADER
+("ENGINE2D", ENGINE2D_SHADER_vcode, ENGINE2D_SHADER_fcode);
+
 namespace ems
 {
     const glm::mat4& getProjectionMatrix()
@@ -245,6 +248,11 @@ namespace ems
     void GAUGE_NEEDLE_shader()
     {
         GAUGE_NEEDLE_SHADER.use();
+    }
+
+    void ENGINE2D_shader()
+    {
+        ENGINE2D_SHADER.use();
     }
 }
 
