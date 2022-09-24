@@ -11,6 +11,12 @@ static EMMesh::Ptr m_crankshaftMesh;
 static EMMesh::Ptr m_conrodMesh;
 static EMMesh::Ptr m_pistonMesh;
 static EMEngine m_engine;
+static double prevCrankAngle = 0.0;
+static double m_prevTime = 0.0;
+static int u_crankAngle = 0;
+static int u_crankAngleDelta = 0;
+static int u_numInstances = 0;
+static int u_partID = 0;
 
 static bool m_hasInit = false;
 
@@ -48,6 +54,13 @@ void EMEngine2DRenderer::init()
     m_conrodMesh->makeRenderable(vtxFmt);
     m_pistonMesh->makeRenderable(vtxFmt);
 
+    ems::ENGINE2D_shader();
+    int shader = ems::getProgramID();
+    u_crankAngle = glGetUniformLocation(shader, "u_crankAngle");
+    u_crankAngleDelta = glGetUniformLocation(shader, "u_crankAngleDelta");
+    u_numInstances = glGetUniformLocation(shader, "u_numInstances");
+    u_partID = glGetUniformLocation(shader, "u_partID");
+
     window = &emui::getWindow();
     keyboard = &window->getKeyboard();
     mouse = &window->getMouse();
@@ -65,6 +78,12 @@ void EMEngine2DRenderer::render()
 {
     i_updateCamFromInputs();
 
+    const int motionblurSamples = 30;
+    const float motionblurAmount = 0.025f;
+    const double time = glfwGetTime();
+    const float delta = float(time - m_prevTime);
+    const float crankDelta = glm::max(-0.3f, float(m_engine.crankAngle - prevCrankAngle));
+
     float viewRatio = emui::getUIWidth() / emui::getUIHeight();
     glm::mat4 projection = glm::ortho(-viewRatio, viewRatio, -1.0f, 1.0f, -500.0f, 500.0f);
     glm::mat4 modelview = glm::mat4(1.0f);
@@ -73,39 +92,29 @@ void EMEngine2DRenderer::render()
 
     ems::setProjectionMatrix(projection);
     ems::setModelviewMatrix(modelview);
+    ems::setColor(1.0f, 1.0f, 1.0f, 0.1f);
+    ems::ENGINE2D_shader();
+    glUniform1f(u_crankAngle, (float) glm::mod(m_engine.crankAngle, glm::two_pi<double>()));
+    glUniform1f(u_crankAngleDelta, motionblurAmount * crankDelta / delta);
+    glUniform1f(u_numInstances, motionblurSamples);
 
     float pistonY =
     glm::sin(glm::acos(glm::cos((float) m_engine.crankAngle) / 2.4f)) * 1.2f +
     glm::sin((float) m_engine.crankAngle) / 2.0f;
 
-    {
-        glm::vec4 conrodPos(0.0f, 0.5f, 0.0f, 1.0f);
-        conrodPos = glm::rotate((float) m_engine.crankAngle - glm::half_pi<float>(), glm::vec3(0.0f, 0.0f, 1.0f)) * conrodPos;
+    glUniform1i(u_partID, 2);
+    m_conrodMesh->renderInstanced(GL_TRIANGLES, motionblurSamples);
 
-        float a = glm::asin((pistonY - conrodPos.y) / 1.2f);
-        float rodAngle = glm::mod((float) m_engine.crankAngle + glm::half_pi<float>(), glm::two_pi<float>());
-        rodAngle = rodAngle > glm::pi<float>() ? a : glm::pi<float>() - a;
-        rodAngle -= glm::half_pi<float>();
+    glUniform1i(u_partID, 1);
+    m_pistonMesh->renderInstanced(GL_TRIANGLES, motionblurSamples);
 
-        modelview = glm::mat4(1.0f);
-        modelview = glm::translate(modelview, {conrodPos.x, conrodPos.y, 0.0f});
-        modelview = glm::rotate(modelview, rodAngle, {0, 0, 1});
-        ems::setModelviewMatrix(modelview);
-        ems::POS_COLOR_shader();
-        m_conrodMesh->render(GL_TRIANGLES);
-    }
+    glUniform1i(u_partID, 0);
+    m_crankshaftMesh->renderInstanced(GL_TRIANGLES, motionblurSamples);
 
-    modelview = glm::mat4(1.0f);
-    modelview = glm::translate(modelview, {0.0f, pistonY, 0.0f});
-    ems::setModelviewMatrix(modelview);
-    ems::POS_COLOR_shader();
-    m_pistonMesh->render(GL_TRIANGLES);
-
-    modelview = glm::mat4(1.0f);
-    modelview = glm::rotate(modelview, (float) m_engine.crankAngle, {0, 0, 1});
-    ems::setModelviewMatrix(modelview);
-    ems::POS_COLOR_shader();
-    m_crankshaftMesh->render(GL_TRIANGLES);
+    ems::setColor(1.0f, 1.0f, 1.0f, 1.0f);
+    m_engine.crankSpeed = -(m_engine.crankAngle - prevCrankAngle) / delta;
+    prevCrankAngle = m_engine.crankAngle;
+    m_prevTime = time;
 }
 
 static void i_updateCamFromInputs()
