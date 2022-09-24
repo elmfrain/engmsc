@@ -4,7 +4,7 @@
 #include "Logger.hpp"
 #include "UIRender.hpp"
 #include "GLInclude.hpp"
-#include "engmsc/Gauge.hpp"
+#include "engmsc/Engine2DRenderer.hpp"
 
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -41,28 +41,24 @@ int main(int argc, char* argv[])
     const EMMouse& mouse = window.getMouse();
     emui::setWindow(window);
 
-    glEnable(GL_MULTISAMPLE);
+    // Init engine renderer
+    EMEngine2DRenderer::init();
 
-    EMGauge gauge;
-    gauge.setRange(0, 160);
-    gauge.setText("§lMPH");
+    glEnable(GL_MULTISAMPLE);
 
     while(!window.shouldClose())
     {
         glViewport(0, 0, window.getWidth(), window.getHeight());
-        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-        if(keyboard.isKeyPressed(GLFW_KEY_SPACE)) 
-            glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
-
+        glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Render engine
+        EMEngine* engine = &EMEngine2DRenderer::getEngine();
+        engine->crankAngle -= 0.03f;
+        EMEngine2DRenderer::render();
+
+        // UI Rendering
         emui::setupUIRendering();
-
-        gauge.x = window.getWidth() / 2.0f;
-        gauge.y = window.getHeight() / 2.0f;
-        gauge.setValue(mouse.cursorX());
-
-        gauge.draw();
 
         emui::renderBatch();
 
