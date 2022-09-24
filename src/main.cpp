@@ -5,6 +5,7 @@
 #include "UIRender.hpp"
 #include "GLInclude.hpp"
 #include "engmsc/Engine2DRenderer.hpp"
+#include "engmsc/Gauge.hpp"
 
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -41,6 +42,16 @@ int main(int argc, char* argv[])
     const EMMouse& mouse = window.getMouse();
     emui::setWindow(window);
 
+    // Create tachometer
+    EMGauge tach;
+    tach.setText("RPMx1000");
+    EMGauge::Profile& tachProfile = tach.getProfile();
+    tachProfile.radius = 150;
+    tachProfile.numMarkings = 5;
+    tachProfile.subdivisions = 5;
+    tach.applyProfile();
+    tach.setRange(0, 4);
+
     // Init engine renderer
     EMEngine2DRenderer::init();
 
@@ -54,11 +65,19 @@ int main(int argc, char* argv[])
 
         // Render engine
         EMEngine* engine = &EMEngine2DRenderer::getEngine();
-        engine->crankAngle -= 0.03f;
+        engine->crankAngle -= 2.5f * mouse.cursorX() / window.getWidth();
         EMEngine2DRenderer::render();
 
         // UI Rendering
         emui::setupUIRendering();
+
+        float rpm = 60.0f * float(engine->crankSpeed / glm::two_pi<double>());
+        tach.x = window.getWidth() - 150.0f;
+        tach.y = window.getHeight() - 150.0f;
+        tach.setValue(rpm / 1000.0f);
+        tach.draw();
+
+        emui::genString(std::to_string(rpm).c_str(), 0, 0, 0xFFFFFFFF, emui::TOP_LEFT);
 
         emui::renderBatch();
 
