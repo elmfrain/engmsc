@@ -10,6 +10,7 @@
 static EMMesh::Ptr m_crankshaftMesh;
 static EMMesh::Ptr m_conrodMesh;
 static EMMesh::Ptr m_pistonMesh;
+static EMMesh::Ptr m_cylheadMesh;
 static EMEngine m_engine;
 static double prevCrankAngle = 0.0;
 static double m_prevTime = 0.0;
@@ -49,10 +50,12 @@ void EMEngine2DRenderer::init()
     m_crankshaftMesh = EMMesh::load("res/engine2D/crankshaft.ply")[0];
     m_conrodMesh = EMMesh::load("res/engine2D/conrod.ply")[0];
     m_pistonMesh = EMMesh::load("res/engine2D/piston.ply")[0];
+    m_cylheadMesh = EMMesh::load("res/engine2D/cylhead.ply")[0];
 
     m_crankshaftMesh->makeRenderable(vtxFmt);
     m_conrodMesh->makeRenderable(vtxFmt);
     m_pistonMesh->makeRenderable(vtxFmt);
+    m_cylheadMesh->makeRenderable(vtxFmt);
 
     ems::ENGINE2D_shader();
     int shader = ems::getProgramID();
@@ -92,15 +95,20 @@ void EMEngine2DRenderer::render()
 
     ems::setProjectionMatrix(projection);
     ems::setModelviewMatrix(modelview);
+
+    modelview = glm::translate(modelview, {0.0f, 2.01f, 0.0f});
+    ems::setModelviewMatrix(modelview);
+    ems::setColor(1.0f, 1.0f, 1.0f, 0.8f);
+    ems::POS_COLOR_shader();
+    m_cylheadMesh->render(GL_TRIANGLES);
+
+    modelview = glm::mat4(1.0f);
+    ems::setModelviewMatrix(modelview);
     ems::setColor(1.0f, 1.0f, 1.0f, 0.1f);
     ems::ENGINE2D_shader();
     glUniform1f(u_crankAngle, (float) glm::mod(m_engine.crankAngle, glm::two_pi<double>()));
     glUniform1f(u_crankAngleDelta, motionblurAmount * crankDelta / delta);
     glUniform1f(u_numInstances, motionblurSamples);
-
-    float pistonY =
-    glm::sin(glm::acos(glm::cos((float) m_engine.crankAngle) / 2.4f)) * 1.2f +
-    glm::sin((float) m_engine.crankAngle) / 2.0f;
 
     glUniform1i(u_partID, 2);
     m_conrodMesh->renderInstanced(GL_TRIANGLES, motionblurSamples);
