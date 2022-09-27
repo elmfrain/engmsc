@@ -11,6 +11,8 @@ static EMMesh::Ptr m_crankshaftMesh;
 static EMMesh::Ptr m_conrodMesh;
 static EMMesh::Ptr m_pistonMesh;
 static EMMesh::Ptr m_cylheadMesh;
+static EMMesh::Ptr m_intakeValveMesh;
+static EMMesh::Ptr m_exhaustValveMesh;
 static EMEngine m_engine;
 static double prevCrankAngle = 0.0;
 static double m_prevTime = 0.0;
@@ -51,11 +53,15 @@ void EMEngine2DRenderer::init()
     m_conrodMesh = EMMesh::load("res/engine2D/conrod.ply")[0];
     m_pistonMesh = EMMesh::load("res/engine2D/piston.ply")[0];
     m_cylheadMesh = EMMesh::load("res/engine2D/cylhead.ply")[0];
+    m_intakeValveMesh = EMMesh::load("res/engine2D/intake-valve.ply")[0];
+    m_exhaustValveMesh = EMMesh::load("res/engine2D/exhaust-valve.ply")[0];
 
     m_crankshaftMesh->makeRenderable(vtxFmt);
     m_conrodMesh->makeRenderable(vtxFmt);
     m_pistonMesh->makeRenderable(vtxFmt);
     m_cylheadMesh->makeRenderable(vtxFmt);
+    m_intakeValveMesh->makeRenderable(vtxFmt);
+    m_exhaustValveMesh->makeRenderable(vtxFmt);
 
     ems::ENGINE2D_shader();
     int shader = ems::getProgramID();
@@ -85,7 +91,7 @@ void EMEngine2DRenderer::render()
     const float motionblurAmount = 0.025f;
     const double time = glfwGetTime();
     const float delta = float(time - m_prevTime);
-    const float crankDelta = glm::max(-0.3f, float(m_engine.crankAngle - prevCrankAngle));
+    const float crankDelta = glm::min(0.3f, float(m_engine.crankAngle - prevCrankAngle));
 
     float viewRatio = emui::getUIWidth() / emui::getUIHeight();
     glm::mat4 projection = glm::ortho(-viewRatio, viewRatio, -1.0f, 1.0f, -500.0f, 500.0f);
@@ -106,10 +112,17 @@ void EMEngine2DRenderer::render()
     ems::setModelviewMatrix(modelview);
     ems::setColor(1.0f, 1.0f, 1.0f, 0.1f);
     ems::ENGINE2D_shader();
-    glUniform1f(u_crankAngle, (float) glm::mod(m_engine.crankAngle, glm::two_pi<double>()));
+    glUniform1f(
+        u_crankAngle, (float) glm::mod(m_engine.crankAngle, 2.0 * glm::two_pi<double>()));
     glUniform1f(u_crankAngleDelta, motionblurAmount * crankDelta / delta);
     glUniform1f(u_numInstances, motionblurSamples);
 
+    glUniform1i(u_partID, 4);
+    m_exhaustValveMesh->renderInstanced(GL_TRIANGLES, motionblurSamples);
+
+    glUniform1i(u_partID, 3);
+    m_intakeValveMesh->renderInstanced(GL_TRIANGLES, motionblurSamples);
+ 
     glUniform1i(u_partID, 2);
     m_conrodMesh->renderInstanced(GL_TRIANGLES, motionblurSamples);
 
@@ -118,9 +131,8 @@ void EMEngine2DRenderer::render()
 
     glUniform1i(u_partID, 0);
     m_crankshaftMesh->renderInstanced(GL_TRIANGLES, motionblurSamples);
-
     ems::setColor(1.0f, 1.0f, 1.0f, 1.0f);
-    m_engine.crankSpeed = -(m_engine.crankAngle - prevCrankAngle) / delta;
+    m_engine.crankSpeed = (m_engine.crankAngle - prevCrankAngle) / delta;
     prevCrankAngle = m_engine.crankAngle;
     m_prevTime = time;
 }

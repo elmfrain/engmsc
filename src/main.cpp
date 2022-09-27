@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
 
         // Render engine
         EMEngine* engine = &EMEngine2DRenderer::getEngine();
-        engine->crankAngle -= 2.5f * mouse.cursorX() / window.getWidth();
+        engine->crankAngle += 2.5f * mouse.cursorX() / window.getWidth();
         EMEngine2DRenderer::render();
 
         // UI Rendering
