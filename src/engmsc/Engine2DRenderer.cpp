@@ -41,6 +41,7 @@ static EMLogger m_logger("Engine2D Renderer");
 
 static void i_updateCamFromInputs();
 static void i_genCamMesh(EMVertexFormat& vtxFmt);
+static void i_renderCylheadAssembly(int instances);
 
 void EMEngine2DRenderer::init()
 {
@@ -111,28 +112,16 @@ void EMEngine2DRenderer::render()
 
     ems::setProjectionMatrix(projection);
     ems::setModelviewMatrix(modelview);
-
-    modelview = glm::translate(modelview, {0.0f, 2.01f, 0.0f});
-    ems::setModelviewMatrix(modelview);
-    ems::setColor(1.0f, 1.0f, 1.0f, 0.8f);
-    ems::POS_COLOR_shader();
-    m_cylheadMesh->render(GL_TRIANGLES);
-
-    modelview = glm::mat4(1.0f);
-    ems::setModelviewMatrix(modelview);
-    ems::setColor(1.0f, 1.0f, 1.0f, 0.1f);
     ems::ENGINE2D_shader();
     glUniform1f(
         u_crankAngle, (float) glm::mod(m_engine.crankAngle, 2.0 * glm::two_pi<double>()));
     glUniform1f(u_crankAngleDelta, motionblurAmount * crankDelta / delta);
     glUniform1f(u_numInstances, motionblurSamples);
-
-    glUniform1i(u_partID, 4);
-    m_exhaustValveMesh->renderInstanced(GL_TRIANGLES, motionblurSamples);
-
-    glUniform1i(u_partID, 3);
-    m_intakeValveMesh->renderInstanced(GL_TRIANGLES, motionblurSamples);
  
+    i_renderCylheadAssembly(motionblurSamples);
+
+    ems::setModelviewMatrix(modelview);
+    ems::ENGINE2D_shader();
     glUniform1i(u_partID, 2);
     m_conrodMesh->renderInstanced(GL_TRIANGLES, motionblurSamples);
 
@@ -141,12 +130,6 @@ void EMEngine2DRenderer::render()
 
     glUniform1i(u_partID, 0);
     m_crankshaftMesh->renderInstanced(GL_TRIANGLES, motionblurSamples);
-
-    glUniform1i(u_partID, 5);
-    m_intakeCamMesh->drawElemenentsInstanced(GL_TRIANGLES, motionblurSamples);
-
-    glUniform1i(u_partID, 6);
-    m_exhaustCamMesh->drawElemenentsInstanced(GL_TRIANGLES, motionblurSamples);
 
     ems::setColor(1.0f, 1.0f, 1.0f, 1.0f);
     m_engine.crankSpeed = (m_engine.crankAngle - prevCrankAngle) / delta;
@@ -212,4 +195,45 @@ static void i_genCamMesh(EMVertexFormat& vtxFmt)
     
     i_genSingleCamMesh(*m_intakeCamMesh, 0.1f, 0.068f, 2.217f);
     i_genSingleCamMesh(*m_exhaustCamMesh, 0.1f, 0.068f, 2.127f);
+}
+
+static void i_renderCylheadAssembly(int instances)
+{
+    glm::mat4 modelview = glm::mat4(1.0f);
+    modelview = glm::translate(modelview, {0.0f, 2.03f, 0.0f});
+
+    ems::setModelviewMatrix(modelview);
+    ems::setColor(1.0f, 1.0f, 1.0f, 0.8f);
+    ems::ENGINE2D_shader();
+
+    glUniform1i(u_partID, -1);
+    m_cylheadMesh->render(GL_TRIANGLES);
+
+    ems::setColor(1.0f, 1.0f, 1.0f, 0.1f);
+
+    glm::mat4 mvIntakeV = glm::translate(modelview, {-0.2069f, 0.0773f, 0.0f});
+    mvIntakeV = glm::rotate(mvIntakeV, 0.1745f, {0, 0, 1});
+    ems::setModelviewMatrix(mvIntakeV);
+    ems::ENGINE2D_shader();
+    glUniform1i(u_partID, 3);
+    m_intakeValveMesh->renderInstanced(GL_TRIANGLES, instances);
+
+    glm::mat4 mvExhaustV = glm::translate(modelview, {0.2158f, 0.0753f, 0.0f});
+    mvExhaustV = glm::rotate(mvExhaustV, -0.1745f, {0, 0, 1});
+    ems::setModelviewMatrix(mvExhaustV);
+    ems::ENGINE2D_shader();
+    glUniform1i(u_partID, 4);
+    m_exhaustValveMesh->renderInstanced(GL_TRIANGLES, instances);
+
+    glm::mat4 mvIntakeCam = glm::translate(mvIntakeV, {0.0f, 0.93f, 0.0f});
+    ems::setModelviewMatrix(mvIntakeCam);
+    ems::ENGINE2D_shader();
+    glUniform1i(u_partID, 5);
+    m_intakeCamMesh->drawElemenentsInstanced(GL_TRIANGLES, instances);
+
+    glm::mat4 mvExhaustCam = glm::translate(mvExhaustV, {0.0f, 0.93f, 0.0f});
+    ems::setModelviewMatrix(mvExhaustCam);
+    ems::ENGINE2D_shader();
+    glUniform1i(u_partID, 6);
+    m_exhaustCamMesh->drawElemenentsInstanced(GL_TRIANGLES, instances);
 }
