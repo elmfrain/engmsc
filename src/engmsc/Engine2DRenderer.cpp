@@ -7,12 +7,19 @@
 
 #include <glm/gtx/transform.hpp>
 
+#define HALF_PI glm::half_pi<float>()
+#define PI glm::pi<float>()
+#define TWO_PI glm::two_pi<float>()
+#define THREE_HALF_PI glm::three_over_two_pi<float>()
+
 static EMMesh::Ptr m_crankshaftMesh;
 static EMMesh::Ptr m_conrodMesh;
 static EMMesh::Ptr m_pistonMesh;
 static EMMesh::Ptr m_cylheadMesh;
 static EMMesh::Ptr m_intakeValveMesh;
 static EMMesh::Ptr m_exhaustValveMesh;
+static std::unique_ptr<EMMeshBuilder> m_intakeCamMesh;
+static std::unique_ptr<EMMeshBuilder> m_exhaustCamMesh;
 static EMEngine m_engine;
 static double prevCrankAngle = 0.0;
 static double m_prevTime = 0.0;
@@ -33,6 +40,7 @@ static float m_zoom = 1.0f;
 static EMLogger m_logger("Engine2D Renderer");
 
 static void i_updateCamFromInputs();
+static void i_genCamMesh(EMVertexFormat& vtxFmt);
 
 void EMEngine2DRenderer::init()
 {
@@ -62,6 +70,8 @@ void EMEngine2DRenderer::init()
     m_cylheadMesh->makeRenderable(vtxFmt);
     m_intakeValveMesh->makeRenderable(vtxFmt);
     m_exhaustValveMesh->makeRenderable(vtxFmt);
+
+    i_genCamMesh(vtxFmt);
 
     ems::ENGINE2D_shader();
     int shader = ems::getProgramID();
@@ -131,6 +141,13 @@ void EMEngine2DRenderer::render()
 
     glUniform1i(u_partID, 0);
     m_crankshaftMesh->renderInstanced(GL_TRIANGLES, motionblurSamples);
+
+    glUniform1i(u_partID, 5);
+    m_intakeCamMesh->drawElemenentsInstanced(GL_TRIANGLES, motionblurSamples);
+
+    glUniform1i(u_partID, 6);
+    m_exhaustCamMesh->drawElemenentsInstanced(GL_TRIANGLES, motionblurSamples);
+
     ems::setColor(1.0f, 1.0f, 1.0f, 1.0f);
     m_engine.crankSpeed = (m_engine.crankAngle - prevCrankAngle) / delta;
     prevCrankAngle = m_engine.crankAngle;
@@ -151,4 +168,48 @@ static void i_updateCamFromInputs()
     {
         m_zoom *= mouse->scrollDeltaY() > 0 ? 1.2f : (1.0f / 1.2f);
     }
+}
+
+static void i_genSingleCamMesh(EMMeshBuilder& meshBuilder, float base, float lift, float duration)
+{
+    const int segments = 64;
+    const float segArc = TWO_PI / segments;
+    float angle = 0.0f;
+
+    glm::mat4* modelview = &meshBuilder.pushMatrix();
+
+    for(int s = 0; s < segments; s++)
+    {
+        meshBuilder.index(6, 0, 1, 2, 0, 2, 3);
+
+        float x = base;
+        if(PI - 0.5f * duration < angle && angle < PI + 0.5f * duration)
+        { x = glm::cos(TWO_PI * (angle - PI) / duration) * 0.5f * lift + 0.5f * lift + base; }
+
+        meshBuilder
+        .vertex(NULL, 0.0f,    x, 0.0f, 0.7f, 0.7f, 0.7f, 1.0f)
+        .vertex(NULL, 0.0f, 0.0f, 0.0f, 0.7f, 0.7f, 0.7f, 1.0f);
+
+        *modelview = glm::rotate(*modelview, segArc, {0, 0, 1});
+        angle += segArc;
+
+        x = base;
+        if(PI - 0.5f * duration < angle && angle < PI + 0.5f * duration)
+        { x = glm::cos(TWO_PI * (angle - PI) / duration) * 0.5f * lift + 0.5f * lift + base; }
+
+        meshBuilder
+        .vertex(NULL, 0.0f, 0.0f, 0.0f, 0.7f, 0.7f, 0.7f, 1.0f)
+        .vertex(NULL, 0.0f,    x, 0.0f, 0.7f, 0.7f, 0.7f, 1.0f);
+    }
+
+    meshBuilder.popMatrix();
+}
+
+static void i_genCamMesh(EMVertexFormat& vtxFmt)
+{
+    m_intakeCamMesh = std::make_unique<EMMeshBuilder>(vtxFmt);
+    m_exhaustCamMesh = std::make_unique<EMMeshBuilder>(vtxFmt);
+    
+    i_genSingleCamMesh(*m_intakeCamMesh, 0.1f, 0.068f, 2.217f);
+    i_genSingleCamMesh(*m_exhaustCamMesh, 0.1f, 0.068f, 2.127f);
 }
