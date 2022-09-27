@@ -122,6 +122,8 @@ public:
     void reset();
     void drawArrays(GLenum mode);
     void drawElements(GLenum mode);
+    void drawArraysInstanced(GLenum mode, int instances);
+    void drawElemenentsInstanced(GLenum mode, int instances);
 
     EMMeshBuilder& position(float x, float y, float z);
     EMMeshBuilder& normal(float x, float y, float z);

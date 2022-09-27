@@ -66,6 +66,16 @@ void EMMeshBuilder::reset()
 
 void EMMeshBuilder::drawArrays(GLenum mode)
 {
+    drawElemenentsInstanced(mode, 1);
+}
+
+void EMMeshBuilder::drawElements(GLenum mode)
+{
+    drawElemenentsInstanced(mode, 1);
+}
+
+void EMMeshBuilder::drawArraysInstanced(GLenum mode, int instances)
+{
     if(!m_isRenderable) initForRendering();
     
     glBindBuffer(GL_ARRAY_BUFFER, m_glVBO);
@@ -81,11 +91,11 @@ void EMMeshBuilder::drawArrays(GLenum mode)
     }
 
     glBindVertexArray(m_glVAO);
-    glDrawArrays(mode, 0, (GLsizei) m_numVerticies);
+    glDrawArraysInstanced(mode, 0, (GLsizei) m_numVerticies, instances);
     glBindVertexArray(0);
 }
 
-void EMMeshBuilder::drawElements(GLenum mode)
+void EMMeshBuilder::drawElemenentsInstanced(GLenum mode, int instances)
 {
     if(!m_isRenderable) initForRendering();
 
@@ -114,7 +124,7 @@ void EMMeshBuilder::drawElements(GLenum mode)
     }
 
     glBindVertexArray(m_glVAO);
-    glDrawElements(mode, m_numIndicies, GL_UNSIGNED_INT, 0);
+    glDrawElementsInstanced(mode, (GLsizei) m_numIndicies, GL_UNSIGNED_INT, 0, instances);
     glBindVertexArray(0);
 }
 
