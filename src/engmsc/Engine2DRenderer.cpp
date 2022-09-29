@@ -171,11 +171,10 @@ void EMEngine2DRenderer::render()
     const float delta = float(time - m_prevTime);
     const float crankDelta = glm::min(0.3f, float(m_engine.crankAngle - prevCrankAngle));
 
-    float viewRatio = emui::getUIWidth() / emui::getUIHeight();
-    glm::mat4 projection = glm::ortho(-viewRatio, viewRatio, -1.0f, 1.0f, -500.0f, 500.0f);
+    float viewRatio = emui::getUIWidth() * m_zoom / emui::getUIHeight();
+    glm::mat4 projection = glm::ortho(-viewRatio, viewRatio, -m_zoom, m_zoom, -500.0f, 500.0f);
     glm::mat4 modelview = glm::mat4(1.0f);
     projection = glm::translate(projection, {-m_camPos.x, -m_camPos.y, 0.0f});
-    projection = glm::scale(projection, {m_zoom, m_zoom, 1.0f});
 
     ems::setProjectionMatrix(projection);
     ems::setModelviewMatrix(modelview);
@@ -205,19 +204,32 @@ void EMEngine2DRenderer::render()
     m_prevTime = time;
 }
 
+static double m_resetCooldown = 0.0;
+
 static void i_updateCamFromInputs()
 {
     float viewRatio = emui::getUIWidth() / emui::getUIHeight();
 
+    if(mouse->buttonJustPressed(GLFW_MOUSE_BUTTON_1))
+    {
+        double time = glfwGetTime();
+        if(time - m_resetCooldown < 0.25)
+        {
+            m_camPos = glm::vec2(0.0f, 0.0f);
+            m_zoom = 1.0f;
+        }
+        m_resetCooldown = time;
+    }
+
     if(mouse->isButtonPressed(GLFW_MOUSE_BUTTON_1))
     {
-        m_camPos.x -= viewRatio * 2.0f * mouse->cursorXDelta() / window->getWidth() ;
-        m_camPos.y += 2.0f * mouse->cursorYDelta() / window->getHeight();
+        m_camPos.x -= viewRatio * 2.0f * mouse->cursorXDelta() * m_zoom / window->getWidth();
+        m_camPos.y += 2.0f * mouse->cursorYDelta() * m_zoom / window->getHeight();
     }
 
     if(mouse->justScrolled())
     {
-        m_zoom *= mouse->scrollDeltaY() > 0 ? 1.2f : (1.0f / 1.2f);
+        m_zoom *= mouse->scrollDeltaY() < 0 ? 1.2f : (1.0f / 1.2f);
     }
 }
 
