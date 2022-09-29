@@ -58,13 +58,14 @@ struct u_EngineProfile
 };
 
 static EMMesh::Ptr m_crankshaftMesh;
-static EMMesh::Ptr m_conrodMesh;
+static EMMesh::Ptr m_conrodBaseMesh;
 static EMMesh::Ptr m_pistonMesh;
 static EMMesh::Ptr m_cylheadMesh;
 static EMMesh::Ptr m_intakeValveMesh;
 static EMMesh::Ptr m_exhaustValveMesh;
 static std::unique_ptr<EMMeshBuilder> m_intakeCamMesh;
 static std::unique_ptr<EMMeshBuilder> m_exhaustCamMesh;
+static std::unique_ptr<EMMeshBuilder> m_conrodMesh;
 static EMEngine m_engine;
 static double prevCrankAngle = 0.0;
 static double m_prevTime = 0.0;
@@ -86,6 +87,7 @@ static float m_zoom = 1.0f;
 static EMLogger m_logger("Engine2D Renderer");
 
 static void i_updateCamFromInputs();
+static void i_genConrodMesh(EMVertexFormat& vtxFmt);
 static void i_genCamMesh(EMVertexFormat& vtxFmt);
 static void i_renderCylheadAssembly(int instances);
 
@@ -122,19 +124,20 @@ void EMEngine2DRenderer::init()
     m_engine.crankSpeed = 0.0;
 
     m_crankshaftMesh = EMMesh::load("res/engine2D/crankshaft.ply")[0];
-    m_conrodMesh = EMMesh::load("res/engine2D/conrod.ply")[0];
+    m_conrodBaseMesh = EMMesh::load("res/engine2D/conrod.ply")[0];
     m_pistonMesh = EMMesh::load("res/engine2D/piston.ply")[0];
     m_cylheadMesh = EMMesh::load("res/engine2D/cylhead.ply")[0];
     m_intakeValveMesh = EMMesh::load("res/engine2D/intake-valve.ply")[0];
     m_exhaustValveMesh = EMMesh::load("res/engine2D/exhaust-valve.ply")[0];
 
     m_crankshaftMesh->makeRenderable(vtxFmt);
-    m_conrodMesh->makeRenderable(vtxFmt);
+    m_conrodBaseMesh->makeRenderable(vtxFmt);
     m_pistonMesh->makeRenderable(vtxFmt);
     m_cylheadMesh->makeRenderable(vtxFmt);
     m_intakeValveMesh->makeRenderable(vtxFmt);
     m_exhaustValveMesh->makeRenderable(vtxFmt);
 
+    i_genConrodMesh(vtxFmt);
     i_genCamMesh(vtxFmt);
 
     ems::ENGINE2D_shader();
@@ -188,7 +191,7 @@ void EMEngine2DRenderer::render()
     ems::setModelviewMatrix(modelview);
     ems::ENGINE2D_shader();
     glUniform1i(u_partID, 2);
-    m_conrodMesh->renderInstanced(GL_TRIANGLES, motionblurSamples);
+    m_conrodMesh->drawElemenentsInstanced(GL_TRIANGLES, motionblurSamples);
 
     glUniform1i(u_partID, 1);
     m_pistonMesh->renderInstanced(GL_TRIANGLES, motionblurSamples);
@@ -216,6 +219,43 @@ static void i_updateCamFromInputs()
     {
         m_zoom *= mouse->scrollDeltaY() > 0 ? 1.2f : (1.0f / 1.2f);
     }
+}
+
+static void i_genConrodMesh(EMVertexFormat& vtxFmt)
+{
+    m_conrodMesh = std::make_unique<EMMeshBuilder>(vtxFmt);
+    const glm::vec3* positions = m_conrodBaseMesh->getPositions();
+    const glm::vec2* uvs = m_conrodBaseMesh->getUVs();
+    const glm::vec4* colors = m_conrodBaseMesh->getColors();
+
+    if(!uvs)
+    {
+        m_conrodBaseMesh->putMeshElements(*m_conrodMesh);
+        return;
+    }
+
+    m_conrodMesh->indexv(m_conrodBaseMesh->numIndicies(), m_conrodBaseMesh->getIndicies());
+
+    glm::mat4* modelview = &m_conrodMesh->pushMatrix();
+
+    glm::mat4 bigEnd = glm::scale(*modelview, {m_engine.profile.stroke, m_engine.profile.stroke, 1.0f});
+    glm::mat4 smallEnd = glm::translate(*modelview, {0.0f, m_engine.profile.rodLength, 0.0f});
+    smallEnd = glm::scale(smallEnd, {m_engine.profile.bore, m_engine.profile.bore, 1.0f}); 
+
+    int numVerticies = (int) m_conrodBaseMesh->numVerticies();
+    for(int i = 0; i < numVerticies; i++)
+    {
+        int group = uvs[i].x < 0.5f ? 0 : 1;
+
+        if(group == 0) *modelview = bigEnd;
+        else *modelview = smallEnd;
+
+        m_conrodMesh->position(positions[i].x, positions[i].y, positions[i].z);
+        if(!colors) m_conrodMesh->colorDefault();
+        else m_conrodMesh->colorRGBA(colors[i].r, colors[i].g, colors[i].b, colors[i].a);
+    }
+
+    m_conrodMesh->popMatrix();
 }
 
 static void i_genSingleCamMesh(EMMeshBuilder& meshBuilder, float base, float lift, float duration)
