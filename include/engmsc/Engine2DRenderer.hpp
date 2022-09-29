@@ -3,6 +3,23 @@
 
 struct EMEngine
 {
+    struct Profile
+    {
+        Profile();
+
+        float stroke;
+        float bore;
+        float rodLength;
+
+        float camIntakeAngle;
+        float camIntakeLift;
+        float camIntakeDuration;
+        float camExhaustAngle;
+        float camExhaustLift;
+        float camExhaustDuration;
+    };
+
+    Profile profile;
     double crankAngle;
     double crankSpeed;
 };

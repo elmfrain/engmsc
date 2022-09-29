@@ -12,6 +12,51 @@
 #define TWO_PI glm::two_pi<float>()
 #define THREE_HALF_PI glm::three_over_two_pi<float>()
 
+// Note: any name with prefirx "u_" indicates that it's a variable used for shaders
+
+struct u_EngineProfile
+{
+    u_EngineProfile()
+    {
+    }
+
+    u_EngineProfile(int program)
+    {
+        stroke =             glGetUniformLocation(program, "u_profile.stroke");
+        bore =               glGetUniformLocation(program, "u_profile.bore");
+        rodLength =          glGetUniformLocation(program, "u_profile.rodLength");
+        camIntakeAngle =     glGetUniformLocation(program, "u_profile.camIntakeAngle");
+        camIntakeLift =      glGetUniformLocation(program, "u_profile.camIntakeLift");
+        camIntakeDuration =  glGetUniformLocation(program, "u_profile.camIntakeDuration");
+        camExhaustAngle =    glGetUniformLocation(program, "u_profile.camExhaustAngle");
+        camExhaustLift =     glGetUniformLocation(program, "u_profile.camExhaustLift");
+        camExhaustDuration = glGetUniformLocation(program, "u_profile.camExhaustDuration");
+    }
+
+    void uniformProfile(EMEngine::Profile& profile)
+    {
+        glUniform1f(stroke, profile.stroke);
+        glUniform1f(bore, profile.bore);
+        glUniform1f(rodLength, profile.rodLength);
+        glUniform1f(camIntakeAngle, profile.camIntakeAngle);
+        glUniform1f(camIntakeLift, profile.camIntakeLift);
+        glUniform1f(camIntakeDuration, profile.camIntakeDuration);
+        glUniform1f(camExhaustAngle, profile.camExhaustAngle);
+        glUniform1f(camExhaustLift, profile.camExhaustLift);
+        glUniform1f(camExhaustDuration, profile.camExhaustDuration);
+    }
+
+    int stroke;
+    int bore;
+    int rodLength;
+    int camIntakeAngle;
+    int camIntakeLift;
+    int camIntakeDuration;
+    int camExhaustAngle;
+    int camExhaustLift;
+    int camExhaustDuration;
+};
+
 static EMMesh::Ptr m_crankshaftMesh;
 static EMMesh::Ptr m_conrodMesh;
 static EMMesh::Ptr m_pistonMesh;
@@ -23,6 +68,7 @@ static std::unique_ptr<EMMeshBuilder> m_exhaustCamMesh;
 static EMEngine m_engine;
 static double prevCrankAngle = 0.0;
 static double m_prevTime = 0.0;
+static u_EngineProfile u_profile;
 static int u_crankAngle = 0;
 static int u_crankAngleDelta = 0;
 static int u_numInstances = 0;
@@ -43,6 +89,20 @@ static void i_updateCamFromInputs();
 static void i_genCamMesh(EMVertexFormat& vtxFmt);
 static void i_renderCylheadAssembly(int instances);
 
+// Default profile
+EMEngine::Profile::Profile() :
+    stroke(1.0f),
+    bore(1.0f),
+    rodLength(1.2f),
+    camIntakeAngle(-1.004f),
+    camIntakeLift(0.068f),
+    camIntakeDuration(2.217f),
+    camExhaustAngle(1.004f),
+    camExhaustLift(0.068f),
+    camExhaustDuration(2.217f)
+{
+}
+
 void EMEngine2DRenderer::init()
 {
     if(m_hasInit) return;
@@ -57,6 +117,9 @@ void EMEngine2DRenderer::init()
                    | EMVF_ATTRB_SIZE(4)
                    | EMVF_ATTRB_TYPE_FLOAT
                    | EMVF_ATTRB_NORMALIZED_FALSE;
+
+    m_engine.crankAngle = 0.0;
+    m_engine.crankSpeed = 0.0;
 
     m_crankshaftMesh = EMMesh::load("res/engine2D/crankshaft.ply")[0];
     m_conrodMesh = EMMesh::load("res/engine2D/conrod.ply")[0];
@@ -80,6 +143,7 @@ void EMEngine2DRenderer::init()
     u_crankAngleDelta = glGetUniformLocation(shader, "u_crankAngleDelta");
     u_numInstances = glGetUniformLocation(shader, "u_numInstances");
     u_partID = glGetUniformLocation(shader, "u_partID");
+    u_profile = u_EngineProfile(shader);
 
     window = &emui::getWindow();
     keyboard = &window->getKeyboard();
@@ -117,6 +181,7 @@ void EMEngine2DRenderer::render()
         u_crankAngle, (float) glm::mod(m_engine.crankAngle, 2.0 * glm::two_pi<double>()));
     glUniform1f(u_crankAngleDelta, motionblurAmount * crankDelta / delta);
     glUniform1f(u_numInstances, motionblurSamples);
+    u_profile.uniformProfile(m_engine.profile);
  
     i_renderCylheadAssembly(motionblurSamples);
 
@@ -193,14 +258,19 @@ static void i_genCamMesh(EMVertexFormat& vtxFmt)
     m_intakeCamMesh = std::make_unique<EMMeshBuilder>(vtxFmt);
     m_exhaustCamMesh = std::make_unique<EMMeshBuilder>(vtxFmt);
     
-    i_genSingleCamMesh(*m_intakeCamMesh, 0.1f, 0.068f, 2.217f);
-    i_genSingleCamMesh(*m_exhaustCamMesh, 0.1f, 0.068f, 2.127f);
+    i_genSingleCamMesh(
+        *m_intakeCamMesh, 0.1f, m_engine.profile.camIntakeLift, m_engine.profile.camIntakeDuration);
+    i_genSingleCamMesh(
+        *m_exhaustCamMesh, 0.1f, m_engine.profile.camExhaustLift, m_engine.profile.camExhaustDuration);
 }
 
 static void i_renderCylheadAssembly(int instances)
 {
+    float scale = m_engine.profile.bore;
     glm::mat4 modelview = glm::mat4(1.0f);
-    modelview = glm::translate(modelview, {0.0f, 2.03f, 0.0f});
+    modelview = glm::translate(modelview, 
+    {0.0f, m_engine.profile.stroke / 2.0f + m_engine.profile.rodLength + 0.3f * scale + 0.03f, 0.0f});
+    modelview = glm::scale(modelview, {scale, scale, 1.0f});
 
     ems::setModelviewMatrix(modelview);
     ems::setColor(1.0f, 1.0f, 1.0f, 0.8f);
