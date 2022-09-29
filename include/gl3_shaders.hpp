@@ -319,6 +319,7 @@ static const char* ENGINE2D_SHADER_vcode =
 "}\n"
 "void valve(float crankAngle, float duration, float lift, float angle)\n"
 "{\n"
+"   lift /= u_profile.bore;\n"
 "   float camAngle = mod((crankAngle + angle) / 2.0 - PI, TWO_PI);\n"
 "   float x = 0.0;\n"
 "   if(PI - 0.5 * duration < camAngle && camAngle < PI + 0.5 * duration)\n"

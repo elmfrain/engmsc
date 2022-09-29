@@ -298,10 +298,13 @@ static void i_genCamMesh(EMVertexFormat& vtxFmt)
     m_intakeCamMesh = std::make_unique<EMMeshBuilder>(vtxFmt);
     m_exhaustCamMesh = std::make_unique<EMMeshBuilder>(vtxFmt);
     
+    float intakeLift = m_engine.profile.camIntakeLift / m_engine.profile.bore;
+    float exhaustLift = m_engine.profile.camExhaustLift / m_engine.profile.bore;
+
     i_genSingleCamMesh(
-        *m_intakeCamMesh, 0.1f, m_engine.profile.camIntakeLift, m_engine.profile.camIntakeDuration);
+        *m_intakeCamMesh, 0.1f, intakeLift, m_engine.profile.camIntakeDuration);
     i_genSingleCamMesh(
-        *m_exhaustCamMesh, 0.1f, m_engine.profile.camExhaustLift, m_engine.profile.camExhaustDuration);
+        *m_exhaustCamMesh, 0.1f, exhaustLift, m_engine.profile.camExhaustDuration);
 }
 
 static void i_renderCylheadAssembly(int instances)
