@@ -33,6 +33,7 @@ public:
     const glm::vec2* getUVs() const;
     const glm::vec3* getNormals() const;
     const glm::vec4* getColors() const;
+    const uint32_t* getIndicies() const;
 
     size_t numVerticies() const;
     size_t numIndicies() const;

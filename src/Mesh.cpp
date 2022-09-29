@@ -280,6 +280,12 @@ const glm::vec4* EMMesh::getColors() const
     return m_colors.data();
 }
 
+const uint32_t* EMMesh::getIndicies() const
+{
+    if(m_indicies.empty()) return NULL;
+    return m_indicies.data();
+}
+
 size_t EMMesh::numVerticies() const
 {
     return m_numVerticies;
