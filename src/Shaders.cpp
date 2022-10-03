@@ -21,7 +21,9 @@ static glm::vec4 m_color(1.0f, 1.0f, 1.0f, 1.0f);
 static int m_texUnits[32];
 static uint32_t m_uniformUpdateFlags = 0xFFFFFFFF;
 
-static GLuint m_currentBoundProgram;
+struct BasicShader;
+
+static BasicShader* m_currentBoundProgram = NULL;
 static int m_maxTexUnits = 32;
 static bool m_hasShadersInit = false;
 
@@ -134,10 +136,10 @@ struct BasicShader
 
         if(!programID) return;
 
-        if(m_currentBoundProgram != programID)
+        if(!m_currentBoundProgram || (m_currentBoundProgram && m_currentBoundProgram->programID != programID))
         {
             glUseProgram(programID);
-            m_currentBoundProgram = programID;
+            m_currentBoundProgram = this;
             m_uniformUpdateFlags = 0xFFFFFFFF;
         }
 
@@ -194,25 +196,28 @@ namespace ems
 
     int getProgramID()
     {
-        return m_currentBoundProgram;
+        return m_currentBoundProgram ? m_currentBoundProgram->programID : 0;
     }
 
     void setProjectionMatrix(const glm::mat4& projection)
     {
         m_projectionMatrix = projection;
         i_setNthBit(&m_uniformUpdateFlags, U_PROJECTION_M_BIT);
+        if(m_currentBoundProgram) m_currentBoundProgram->use();
     }
 
     void setModelviewMatrix(const glm::mat4& modelview)
     {
         m_modelviewMatrix = modelview;
         i_setNthBit(&m_uniformUpdateFlags, U_MODELVIEW_M_BIT);
+        if(m_currentBoundProgram) m_currentBoundProgram->use();
     }
 
     void setColor(const glm::vec4& color)
     {
         m_color = color;
         i_setNthBit(&m_uniformUpdateFlags, U_COLOR_BIT);
+        if(m_currentBoundProgram) m_currentBoundProgram->use();
     }
 
     void setColor(float r, float g, float b, float a)
