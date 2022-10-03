@@ -6,6 +6,7 @@
 #include "GLInclude.hpp"
 #include "engmsc/Engine2DRenderer.hpp"
 #include "engmsc/Gauge.hpp"
+#include "engmsc/Engine.hpp"
 
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -52,26 +53,37 @@ int main(int argc, char* argv[])
     tach.applyProfile();
     tach.setRange(0, 4);
 
+    // Create Engine Assembly
+    EMEngineAssembly engine;
+    engine.cylinders.back().bankAngle = -glm::quarter_pi<double>();
+    engine.cylinders.emplace_back();
+    engine.cylinders.back().angleOffset = glm::three_over_two_pi<double>();
+    engine.cylinders.back().bankAngle = glm::quarter_pi<double>();
+
     // Init engine renderer
     EMEngine2DRenderer::init();
+    EMEngine2DRenderer::setEngineAssembly(engine);
 
+    double prevTime = glfwGetTime();
     glEnable(GL_MULTISAMPLE);
 
     while(!window.shouldClose())
     {
+        double time = glfwGetTime();
         glViewport(0, 0, window.getWidth(), window.getHeight());
         glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Render engine
-        EMEngine* engine = &EMEngine2DRenderer::getEngine();
-        engine->crankAngle += 2.5f * mouse.cursorX() / window.getWidth();
+        engine.crankSpeed = 500.0f * mouse.cursorX() / window.getWidth();
+        engine.crankAngle += engine.crankSpeed * (time - prevTime);
+        prevTime = time;
         EMEngine2DRenderer::render();
 
         // UI Rendering
         emui::setupUIRendering();
 
-        float rpm = 60.0f * float(engine->crankSpeed / glm::two_pi<double>());
+        float rpm = 60.0f * float(engine.crankSpeed / glm::two_pi<double>());
         tach.x = window.getWidth() - 150.0f;
         tach.y = window.getHeight() - 150.0f;
         tach.setValue(rpm / 1000.0f);
@@ -84,6 +96,7 @@ int main(int argc, char* argv[])
         clearGLErrors();
         window.swapBuffers();
         glfwPollEvents();
+
     }
 
     glfwTerminate();
