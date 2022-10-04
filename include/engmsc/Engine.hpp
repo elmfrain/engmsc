@@ -19,6 +19,7 @@ struct EMEngineCylinder
     float camExhaustLift;
     float camExhaustDuration;
 
+    double pistonFrictionForce;
     double angleOffset;
     double bankAngle;
 

@@ -11,6 +11,7 @@ EMEngineCylinder::EMEngineCylinder() :
     camExhaustAngle(1.004f),
     camExhaustLift(0.068f),
     camExhaustDuration(2.217f),
+    pistonFrictionForce(5.0),
     angleOffset(0.0),
     bankAngle(0.0),
     headFlipped(false)
