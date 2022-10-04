@@ -55,10 +55,6 @@ int main(int argc, char* argv[])
 
     // Create Engine Assembly
     EMEngineAssembly engine;
-    engine.cylinders.back().bankAngle = -glm::quarter_pi<double>();
-    engine.cylinders.emplace_back();
-    engine.cylinders.back().angleOffset = glm::three_over_two_pi<double>();
-    engine.cylinders.back().bankAngle = glm::quarter_pi<double>();
 
     // Init engine renderer
     EMEngine2DRenderer::init();
@@ -75,7 +71,27 @@ int main(int argc, char* argv[])
         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Render engine
-        engine.crankSpeed = 500.0f * mouse.cursorX() / window.getWidth();
+        EMEngineCylinder cyl = engine.cylinders.back();
+        double b = -engine.crankAngle + glm::half_pi<double>();
+        double pistonY = 
+        glm::sin(glm::acos(glm::cos(b) * cyl.stroke / (2.0 * cyl.rodLength))) * cyl.rodLength
+        + glm::sin(b) * cyl.stroke / 2.0;
+        double conrodAngle = glm::asin(glm::sin(engine.crankAngle) / cyl.rodLength);
+        double mass = 40.0;
+        double torque = 0.0;
+        double pistonForce = 0.0;
+        if(keyboard.isKeyPressed(GLFW_KEY_LEFT)) torque = -10;
+        if(keyboard.isKeyPressed(GLFW_KEY_RIGHT)) torque = 10;
+        if(keyboard.isKeyPressed(GLFW_KEY_DOWN)) pistonForce = 24;
+        double frictionTorque = 0.0 < engine.crankSpeed ? 3.0 : -3.0;
+        torque += pistonForce * glm::sin(conrodAngle) * pistonY;
+        if(-0.1 < engine.crankSpeed && engine.crankSpeed < 0.1)
+        {
+            engine.crankSpeed = 0.0;
+            frictionTorque = 0.0;
+        }
+        double accel = (torque - frictionTorque) / mass;
+        engine.crankSpeed += accel;
         engine.crankAngle += engine.crankSpeed * (time - prevTime);
         prevTime = time;
         EMEngine2DRenderer::render();
@@ -96,7 +112,6 @@ int main(int argc, char* argv[])
         clearGLErrors();
         window.swapBuffers();
         glfwPollEvents();
-
     }
 
     glfwTerminate();
