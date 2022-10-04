@@ -58,7 +58,7 @@ void EMEnginePhysics::update(double timeDelta, int steps)
 
 static void i_simulationStep(double timeDelta)
 {
-    double totalTorque = m_externalTorque;
+    double netTorque = m_externalTorque;
 
     for(EMEngineCylinder& cyl : m_engine->cylinders)
     {
@@ -71,18 +71,23 @@ static void i_simulationStep(double timeDelta)
         double conrodAngle = glm::asin(glm::sin(cylCrankAngle) / cyl.rodLength);
 
         double pistonForce = 0.0;
-        totalTorque += pistonForce * glm::sin(conrodAngle) * pistonY;
+        netTorque += pistonForce * glm::sin(conrodAngle) * pistonY;
     }
 
     double frictionTorque = 0.0 < m_engine->crankSpeed ? m_engine->frictionTorque : -m_engine->frictionTorque;
+    double frictionSpeed = (m_engine->frictionTorque / m_engine->rotationalMass) * timeDelta;
 
-    if(-0.01 < m_engine->crankSpeed && m_engine->crankSpeed < 0.01)
+    if(-frictionSpeed < m_engine->crankSpeed && m_engine->crankSpeed < frictionSpeed)
     {
         m_engine->crankSpeed = 0.0;
         frictionTorque = 0.0;
+        if(-m_engine->frictionTorque < netTorque && netTorque < m_engine->frictionTorque)
+        {
+            frictionTorque = netTorque;
+        }
     }
 
-    double acceleration = (totalTorque - frictionTorque) / m_engine->rotationalMass;
+    double acceleration = (netTorque - frictionTorque) / m_engine->rotationalMass;
     m_engine->crankSpeed += acceleration * timeDelta;
     m_engine->crankAngle += m_engine->crankSpeed * timeDelta;
 }
