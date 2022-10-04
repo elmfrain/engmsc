@@ -7,6 +7,7 @@
 #include "engmsc/Engine2DRenderer.hpp"
 #include "engmsc/Gauge.hpp"
 #include "engmsc/Engine.hpp"
+#include "engmsc/EnginePhysics.hpp"
 
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -53,47 +54,34 @@ int main(int argc, char* argv[])
     tach.applyProfile();
     tach.setRange(0, 4);
 
+    EMTimer timer(240.0);
+
     // Create Engine Assembly
     EMEngineAssembly engine;
 
-    // Init engine renderer
+    // Init engine renderer and physics
     EMEngine2DRenderer::init();
     EMEngine2DRenderer::setEngineAssembly(engine);
+    EMEnginePhysics::setEngineAssembly(engine);
 
-    double prevTime = glfwGetTime();
     glEnable(GL_MULTISAMPLE);
 
     while(!window.shouldClose())
     {
-        double time = glfwGetTime();
         glViewport(0, 0, window.getWidth(), window.getHeight());
         glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Render engine
-        EMEngineCylinder cyl = engine.cylinders.back();
-        double b = -engine.crankAngle + glm::half_pi<double>();
-        double pistonY = 
-        glm::sin(glm::acos(glm::cos(b) * cyl.stroke / (2.0 * cyl.rodLength))) * cyl.rodLength
-        + glm::sin(b) * cyl.stroke / 2.0;
-        double conrodAngle = glm::asin(glm::sin(engine.crankAngle) / cyl.rodLength);
-        double mass = 40.0;
         double torque = 0.0;
-        double pistonForce = 0.0;
-        if(keyboard.isKeyPressed(GLFW_KEY_LEFT)) torque = -10;
-        if(keyboard.isKeyPressed(GLFW_KEY_RIGHT)) torque = 10;
-        if(keyboard.isKeyPressed(GLFW_KEY_DOWN)) pistonForce = 24;
-        double frictionTorque = 0.0 < engine.crankSpeed ? 3.0 : -3.0;
-        torque += pistonForce * glm::sin(conrodAngle) * pistonY;
-        if(-0.1 < engine.crankSpeed && engine.crankSpeed < 0.1)
+        if(keyboard.isKeyPressed(GLFW_KEY_LEFT)) torque = -100;
+        if(keyboard.isKeyPressed(GLFW_KEY_RIGHT)) torque = 100;
+        int steps = timer.ticksPassed();
+        for(int i = 0; i < steps; i++)
         {
-            engine.crankSpeed = 0.0;
-            frictionTorque = 0.0;
+            EMEnginePhysics::applyTorque(torque);
+            EMEnginePhysics::update(1.0 / timer.getTPS(), 1);
         }
-        double accel = (torque - frictionTorque) / mass;
-        engine.crankSpeed += accel;
-        engine.crankAngle += engine.crankSpeed * (time - prevTime);
-        prevTime = time;
         EMEngine2DRenderer::render();
 
         // UI Rendering
