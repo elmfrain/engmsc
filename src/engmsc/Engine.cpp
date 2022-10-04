@@ -19,7 +19,9 @@ EMEngineCylinder::EMEngineCylinder() :
 
 EMEngineAssembly::EMEngineAssembly() :
     crankAngle(0.0),
-    crankSpeed(0.0)
+    crankSpeed(0.0),
+    rotationalMass(1.0),
+    frictionTorque(20.0)
 {
     cylinders.emplace_back();
 }

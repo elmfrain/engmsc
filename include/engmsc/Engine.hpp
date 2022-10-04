@@ -33,6 +33,9 @@ struct EMEngineAssembly
     std::vector<EMEngineCylinder> cylinders;
     double crankAngle;
     double crankSpeed;
+
+    double rotationalMass;
+    double frictionTorque;
 };
 
 #endif // EMENGINE_HPP
