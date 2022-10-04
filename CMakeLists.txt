@@ -40,6 +40,7 @@ add_executable(${PROJECT_NAME}
     src/engmsc/Gauge.cpp
     src/engmsc/Engine2DRenderer.cpp
     src/engmsc/Engine.cpp
+    src/engmsc/EnginePhysics.cpp
 )
 
 # Copy resources to build directory
