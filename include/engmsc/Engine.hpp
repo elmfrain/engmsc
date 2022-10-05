@@ -12,6 +12,7 @@ struct EMEngineCylinder
     float bore;
     float rodLength;
     float deckClearance;
+    float gasketHeight;
 
     float camIntakeAngle;
     float camIntakeLift;
