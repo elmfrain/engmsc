@@ -5,6 +5,7 @@ EMEngineCylinder::EMEngineCylinder() :
     stroke(1.0f),
     bore(1.0f),
     rodLength(1.2f),
+    deckClearance(0.04f),
     camIntakeAngle(-1.004f),
     camIntakeLift(0.068f),
     camIntakeDuration(2.217f),

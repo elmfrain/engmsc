@@ -11,6 +11,7 @@ struct EMEngineCylinder
     float stroke;
     float bore;
     float rodLength;
+    float deckClearance;
 
     float camIntakeAngle;
     float camIntakeLift;
