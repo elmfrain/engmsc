@@ -59,11 +59,12 @@ struct u_EngineProfile
     int camExhaustDuration;
 };
 
-struct EngineCylinderMeshes
+struct CylinderRenderInfo
 {
     std::unique_ptr<EMMeshBuilder> intakeCamMesh;
     std::unique_ptr<EMMeshBuilder> exhaustCamMesh;
     std::unique_ptr<EMMeshBuilder> conrodMesh;
+    float cylHeadHeight;
 };
 
 // Static meshes
@@ -92,7 +93,7 @@ static const EMMouse* m_mouse;
 
 // Engine Reference
 static EMEngineAssembly* m_engineAssembly = NULL;
-static std::vector<EngineCylinderMeshes> m_cylMeshes;
+static std::vector<CylinderRenderInfo> m_cylMeshes;
 
 // Camera
 static glm::vec2 m_camPos(0.0f);
@@ -106,7 +107,7 @@ static void i_updateCamFromInputs();
 static void i_genConrodMesh(EMEngineCylinder& cyl, std::unique_ptr<EMMeshBuilder>& meshBuilder);
 static void i_genCamMesh(EMEngineCylinder& cyl, std::unique_ptr<EMMeshBuilder>& meshBuilder,
                          float base, float lift, float duration);
-static void i_renderCylHeadAssembly(EMEngineCylinder& cyl, EngineCylinderMeshes& meshes);
+static void i_renderCylHeadAssembly(EMEngineCylinder& cyl, CylinderRenderInfo& cylInfo);
 
 void EMEngine2DRenderer::init()
 {
@@ -162,11 +163,15 @@ void EMEngine2DRenderer::setEngineAssembly(EMEngineAssembly& engine)
 
     for(EMEngineCylinder& cyl : engine.cylinders)
     {
-        EngineCylinderMeshes& back = m_cylMeshes.emplace_back();
+        CylinderRenderInfo& back = m_cylMeshes.emplace_back();
 
         i_genConrodMesh(cyl, back.conrodMesh);
         i_genCamMesh(cyl, back.intakeCamMesh, 0.1f, cyl.camIntakeLift / cyl.bore, cyl.camIntakeDuration);
         i_genCamMesh(cyl, back.exhaustCamMesh, 0.1f, cyl.camExhaustLift / cyl.bore, cyl.camExhaustDuration);
+
+        // Note: Piston pin height is always 0.3 * bore (corrisponds to mesh)
+
+        back.cylHeadHeight = cyl.stroke / 2.0f + cyl.rodLength + 0.3f * cyl.bore + cyl.gasketHeight + cyl.deckClearance;
     }
 }
 
@@ -196,7 +201,7 @@ void EMEngine2DRenderer::render()
     for(int i = numCylinders - 1; i >= 0; i--)
     {  
         EMEngineCylinder& cyl = m_engineAssembly->cylinders[i];
-        EngineCylinderMeshes& cylMeshes = m_cylMeshes[i];
+        CylinderRenderInfo& cylMeshes = m_cylMeshes[i];
 
         modelview = glm::rotate((float) -cyl.bankAngle, glm::vec3(0.0, 0.0, 1.0f));
         ems::setModelviewMatrix(modelview);
@@ -329,10 +334,11 @@ static void i_genCamMesh(EMEngineCylinder& cyl, std::unique_ptr<EMMeshBuilder>& 
     meshBuilder->popMatrix();
 }
 
-static void i_renderCylHeadAssembly(EMEngineCylinder& cyl, EngineCylinderMeshes& meshes)
+static void i_renderCylHeadAssembly(EMEngineCylinder& cyl, CylinderRenderInfo& cylInfo)
 {
     glm::mat4 modelview = ems::getModelviewMatrix();
-    modelview = glm::translate(modelview, {0.0f, cyl.stroke / 2.0f + cyl.rodLength + 0.33f * cyl.bore, 0.0f});
+    modelview = 
+    glm::translate(modelview, {0.0f, cylInfo.cylHeadHeight, 0.0f});
     modelview = glm::scale(modelview, {cyl.headFlipped ? -cyl.bore : cyl.bore, cyl.bore, 1.0f});
 
     ems::setModelviewMatrix(modelview);
@@ -358,10 +364,10 @@ static void i_renderCylHeadAssembly(EMEngineCylinder& cyl, EngineCylinderMeshes&
     glm::mat4 mvIntakeCam = glm::translate(mvIntakeV, {0.0f, 0.93f, 0.0f});
     ems::setModelviewMatrix(mvIntakeCam);
     glUniform1i(u_partID, 5);
-    meshes.intakeCamMesh->drawElemenentsInstanced(GL_TRIANGLES, m_motionblurSamples);
+    cylInfo.intakeCamMesh->drawElemenentsInstanced(GL_TRIANGLES, m_motionblurSamples);
 
     glm::mat4 mvExhaustCam = glm::translate(mvExhaustV, {0.0f, 0.93f, 0.0f});
     ems::setModelviewMatrix(mvExhaustCam);
     glUniform1i(u_partID, 6);
-    meshes.exhaustCamMesh->drawElemenentsInstanced(GL_TRIANGLES, m_motionblurSamples);
+    cylInfo.exhaustCamMesh->drawElemenentsInstanced(GL_TRIANGLES, m_motionblurSamples);
 }
