@@ -10,6 +10,8 @@ namespace EMEnginePhysics
     void applyTorque(double torque);
 
     void update(double timeDelta, int steps);
+
+    double getCylPressure(int cylNum);
 }
 
 #endif // EMENGINE_PHYSICS_HPP
