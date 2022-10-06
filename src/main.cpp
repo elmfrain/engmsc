@@ -44,20 +44,32 @@ int main(int argc, char* argv[])
     const EMMouse& mouse = window.getMouse();
     emui::setWindow(window);
 
-    // Create tachometer
+    // Create gauges
     EMGauge tach;
     tach.setText("RPMx1000");
     EMGauge::Profile& tachProfile = tach.getProfile();
-    tachProfile.radius = 150;
+    tachProfile.radius = 120;
     tachProfile.numMarkings = 5;
     tachProfile.subdivisions = 5;
     tach.applyProfile();
     tach.setRange(0, 4);
+    EMGauge baro;
+    baro.setText("Cyl PSI");
+    EMGauge::Profile& baroProfile = baro.getProfile();
+    baroProfile.radius = 120;
+    baroProfile.numMarkings = 13;
+    baroProfile.subdivisions = 3;
+    baro.applyProfile();
+    baro.setRange(0, 120);
 
-    EMTimer timer(240.0);
+    EMTimer timer(1500.0);
 
     // Create Engine Assembly
     EMEngineAssembly engine;
+    engine.frictionTorque = 1000;
+    engine.rotationalMass = 1000;
+    engine.cylinders.back().pistonFrictionForce = 200;
+    engine.cylinders.back().deckClearance = 0.1f;
 
     // Init engine renderer and physics
     EMEngine2DRenderer::init();
@@ -74,8 +86,8 @@ int main(int argc, char* argv[])
 
         // Render engine
         double torque = 0.0;
-        if(keyboard.isKeyPressed(GLFW_KEY_LEFT)) torque = -100;
-        if(keyboard.isKeyPressed(GLFW_KEY_RIGHT)) torque = 100;
+        if(keyboard.isKeyPressed(GLFW_KEY_LEFT)) torque = -30000;
+        if(keyboard.isKeyPressed(GLFW_KEY_RIGHT)) torque = 30000;
         int steps = timer.ticksPassed();
         for(int i = 0; i < steps; i++)
         {
@@ -88,10 +100,13 @@ int main(int argc, char* argv[])
         emui::setupUIRendering();
 
         float rpm = 60.0f * float(engine.crankSpeed / glm::two_pi<double>());
-        tach.x = window.getWidth() - 150.0f;
-        tach.y = window.getHeight() - 150.0f;
+        tach.x = window.getWidth() - 120.0f;
+        tach.y = baro.y = window.getHeight() - 120.0f;
         tach.setValue(rpm / 1000.0f);
         tach.draw();
+        baro.x = tach.x - 240;
+        baro.setValue((float) EMEnginePhysics::getCylPressure(0) * 145e-6f - 14.7f);
+        baro.draw();
 
         emui::genString(std::to_string(rpm).c_str(), 0, 0, 0xFFFFFFFF, emui::TOP_LEFT);
 
