@@ -54,13 +54,13 @@ int main(int argc, char* argv[])
     tach.applyProfile();
     tach.setRange(0, 4);
     EMGauge baro;
-    baro.setText("Cyl PSI");
+    baro.setText("Cyl kPa");
     EMGauge::Profile& baroProfile = baro.getProfile();
     baroProfile.radius = 120;
-    baroProfile.numMarkings = 13;
+    baroProfile.numMarkings = 9;
     baroProfile.subdivisions = 3;
     baro.applyProfile();
-    baro.setRange(0, 120);
+    baro.setRange(0, 800);
 
     EMTimer timer(1500.0);
 
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
         tach.setValue(rpm / 1000.0f);
         tach.draw();
         baro.x = tach.x - 240;
-        baro.setValue((float) EMEnginePhysics::getCylPressure(0) * 145e-6f - 14.7f);
+        baro.setValue((float) EMEnginePhysics::getCylPressure(0) * 1e-3f);
         baro.draw();
 
         emui::genString(std::to_string(rpm).c_str(), 0, 0, 0xFFFFFFFF, emui::TOP_LEFT);
