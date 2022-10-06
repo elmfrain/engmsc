@@ -13,6 +13,7 @@ struct EMEngineCylinder
     float rodLength;
     float deckClearance;
     float gasketHeight;
+    float combustionChamberVolume;
 
     float camIntakeAngle;
     float camIntakeLift;
@@ -21,6 +22,7 @@ struct EMEngineCylinder
     float camExhaustLift;
     float camExhaustDuration;
 
+    double blowbyArea;
     double pistonFrictionForce;
     double angleOffset;
     double bankAngle;
