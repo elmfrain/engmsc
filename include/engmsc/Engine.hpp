@@ -15,9 +15,11 @@ struct EMEngineCylinder
     float gasketHeight;
     float combustionChamberVolume;
 
+    float intakeValveRadius;
     float camIntakeAngle;
     float camIntakeLift;
     float camIntakeDuration;
+    float exhaustValveRadius;
     float camExhaustAngle;
     float camExhaustLift;
     float camExhaustDuration;
