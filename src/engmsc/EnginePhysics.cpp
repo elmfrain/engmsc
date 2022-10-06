@@ -23,6 +23,8 @@ struct CylinderDynamics
     double minCylVolume = 0.0;
     double pistonArea = 0.0;
     double blowbyAmount = 0.0;
+    double intakeValveArea = 0.0;
+    double exhaustValveArea = 0.0;
 
     // Dynamic varaibles
     double cylVolume = 0.0;
@@ -41,6 +43,7 @@ static std::vector<CylinderDynamics> m_cylDynamics;
 static double m_externalTorque = 0.0;
 
 static inline double i_getPistonY(EMEngineCylinder& cyl, double angle);
+static inline double i_getCamLift(double angle, float duration, float lift, float offsetAngle);
 static void i_simulationStep(double timeDelta);
 
 void EMEnginePhysics::setEngineAssembly(EMEngineAssembly& engine)
@@ -62,6 +65,8 @@ void EMEnginePhysics::setEngineAssembly(EMEngineAssembly& engine)
         cyl.combustionChamberVolume + cyl.gasketHeight * pistonArea + cyl.deckClearance * pistonArea;
         cylDym.pistonArea = pistonArea;
         cylDym.blowbyAmount = cyl.blowbyArea / AIR_VISCOSITY;
+        cylDym.intakeValveArea = PI * glm::pow(cyl.intakeValveRadius, 2.0);
+        cylDym.exhaustValveArea = PI * glm::pow(cyl.exhaustValveRadius, 2.0);
 
         cylDym.cylVolume =
         (cylDym.tdcPistonY - i_getPistonY(cyl, cyl.angleOffset)) * cylDym.pistonArea + cylDym.minCylVolume;
@@ -100,7 +105,7 @@ void EMEnginePhysics::update(double timeDelta, int steps)
 
 double EMEnginePhysics::getCylPressure(int cylNum)
 {
-    assert(cylNum < m_cylDynamics.size());
+    assert(cylNum < m_cylDynamics.size() && -1 < cylNum);
 
     return m_cylDynamics[cylNum].cylPressure;
 }
@@ -110,6 +115,15 @@ static inline double i_getPistonY(EMEngineCylinder& cyl, double angle)
     angle = -angle + HALF_PI;
      return glm::sin(glm::acos(glm::cos(angle) * cyl.stroke / (2.0 * cyl.rodLength))) * cyl.rodLength
         + glm::sin(angle) * cyl.stroke / 2.0;
+}
+
+static inline double i_getCamLift(double angle, float duration, float lift, float offsetAngle)
+{
+    angle = glm::mod(angle / 2.0 + offsetAngle - PI, TWO_PI);
+    double x = 0.0;
+    if(PI - 0.5 * duration < angle && angle < PI + 0.5 * duration)
+    { x = glm::cos(TWO_PI * (angle - PI) / duration) * 0.5 * lift + 0.5 * lift; }
+    return x;
 }
 
 static void i_simulationStep(double timeDelta)
@@ -133,6 +147,16 @@ static void i_simulationStep(double timeDelta)
         cylDym.cylPressure = cylDym.cylPressure * cylDym.cylVolume / newVolume;
 
         cylDym.cylPressure += (ONE_ATM_PRES - cylDym.cylPressure) * cylDym.blowbyAmount * timeDelta;
+
+        double intakeAir = cylDym.intakeValveArea * 
+        i_getCamLift(cylCrankAngle, cyl.camIntakeDuration, cyl.camIntakeLift, cyl.camIntakeAngle) /
+        AIR_VISCOSITY;
+        cylDym.cylPressure += (ONE_ATM_PRES - cylDym.cylPressure) * intakeAir * timeDelta;
+
+        double exhaustAir = cylDym.exhaustValveArea *
+        i_getCamLift(cylCrankAngle, cyl.camExhaustDuration, cyl.camExhaustLift, cyl.camExhaustAngle) /
+        AIR_VISCOSITY;
+        cylDym.cylPressure += (ONE_ATM_PRES - cylDym.cylPressure) * exhaustAir * timeDelta;
 
         double atmForce = ONE_ATM_PRES * cylDym.pistonArea;
         double pistonForce = cylDym.pistonArea * cylDym.cylPressure - atmForce;
