@@ -36,7 +36,7 @@ class Prodtest : public EMAudioProducer
 private:
     double pos = 0.0;
 public:
-    size_t placeSamples(float* buffer, size_t bufferLen, float gain) override
+    size_t placeSamples(float* buffer, size_t bufferLen) override
     {
         if(pos / EMSAMPLE_RATE > getDuration())
         {
@@ -45,7 +45,7 @@ public:
 
         for(size_t i = 0; i < bufferLen; i++)
         {
-            buffer[i] += (float) glm::sin(pos * 3.14 * 2000 / EMSAMPLE_RATE);
+            buffer[i] += (float) glm::sin(pos * 3.14 * 2000 * m_pitch / EMSAMPLE_RATE) * m_gain;
             pos++;
         }
 
@@ -74,12 +74,6 @@ int main(int argc, char* argv[])
     const EMKeyboard& keyboard = window.getKeyboard();
     const EMMouse& mouse = window.getMouse();
     emui::setWindow(window);
-
-    // Setup Audio
-    EMOpenALContext audioCtx;
-    audioCtx.initContext();
-    EMAudioStream audStream;
-    audioCtx.addStream(audStream);
 
     // Create gauges
     EMGauge tach;
@@ -115,6 +109,12 @@ int main(int argc, char* argv[])
 
     glEnable(GL_MULTISAMPLE);
 
+    // Setup Audio
+    EMOpenALContext audioCtx;
+    audioCtx.initContext();
+    EMAudioStream audStream;
+    audioCtx.addStream(audStream);
+
     while(!window.shouldClose())
     {
         glViewport(0, 0, window.getWidth(), window.getHeight());
@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
 
         if(mouse.buttonJustPressed(GLFW_MOUSE_BUTTON_1))
         {
-            audStream.play(EMAudioEvent(new Prodtest(), 0.3f));
+            audStream.play(EMAudioEvent(new Prodtest(), 0.3f, 0.5f * float(rand()) / RAND_MAX + 0.5f));
         }
         audioCtx.update();
 
@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
         baro.setValue((float) EMEnginePhysics::getCylPressure(0) * 1e-3f);
         baro.draw();
 
-        emui::genString(std::to_string(rpm).c_str(), 0, 0, 0xFFFFFFFF, emui::TOP_LEFT);
+        emui::genString(std::to_string(audStream.getNbEvents()).c_str(), 0, 0, 0xFFFFFFFF, emui::TOP_LEFT);
 
         emui::renderBatch();
 
