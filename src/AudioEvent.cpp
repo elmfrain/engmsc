@@ -6,7 +6,8 @@ EMAudioEvent::EMAudioEvent(EMAudioProducer* producer, float gain, float pitch) :
     m_pitch(pitch),
     m_samplePos(0.0)
 {
-
+    m_audioProducer->m_gain = gain;
+    m_audioProducer->m_pitch = pitch;
 }
 
 float EMAudioEvent::getGain() const

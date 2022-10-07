@@ -111,13 +111,12 @@ void EMAudioStream::fillNextBuffers()
                     int sampleStart = (int) (event.timeToStart - m_bufferTime) * EMSAMPLE_RATE;
 
                     event.event.m_audioProducer->placeSamples(
-                    m_workBuffer.data() + sampleStart, EMSAMPLES_PER_BUFFER - sampleStart, event.event.m_gain);
+                    m_workBuffer.data() + sampleStart, EMSAMPLES_PER_BUFFER - sampleStart);
                     continue;
                 }
                 else if(event.hasStarted)
                 {
-                    event.event.m_audioProducer->placeSamples(
-                    m_workBuffer.data(), EMSAMPLES_PER_BUFFER, event.event.m_gain);
+                    event.event.m_audioProducer->placeSamples(m_workBuffer.data(), EMSAMPLES_PER_BUFFER);
                 }
             }
 
