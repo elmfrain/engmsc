@@ -16,11 +16,11 @@
 #endif
 
 #ifndef EMSAMPLES_PER_BUFFER
-#define EMSAMPLES_PER_BUFFER 1024
+#define EMSAMPLES_PER_BUFFER 512
 #endif
 
 #ifndef EMBUFFER_POOL_SIZE
-#define EMBUFFER_POOL_SIZE 3
+#define EMBUFFER_POOL_SIZE 4
 #endif
 
 class EMAudioStream

@@ -118,20 +118,26 @@ void EMAudioStream::fillNextBuffers()
                 }
             }
 
-            // Remove expired events
+            // Remove expired events or let late events play
             m_events.remove_if([&] (EMAudioEvent& event)
             {
-                if(event.m_audioProducer->hasExpired() || !event.m_hasStarted && event.m_startTime < m_bufferTime)
+                if(event.m_audioProducer->hasExpired())
                 {
                     m_nbEvents--;
                     delete event.m_audioProducer;
                     return true;
                 }
+                else if(!event.m_hasStarted && event.m_startTime < m_bufferTime)
+                {
+                    event.m_hasStarted = true;
+                }
                 return false;
             });
 
             // If falling behind, remove static audio events
-            if(glfwGetTime() - m_bufferTime > m_compensationDelay * 3.0)
+            // Note: Static events are known for their producer having a duration
+            // of 0.0
+            if(glfwGetTime() - m_bufferTime > m_compensationDelay * 2.0)
             {
                 m_events.remove_if([&](EMAudioEvent& event)
                 {
