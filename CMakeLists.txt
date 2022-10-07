@@ -10,6 +10,9 @@ add_subdirectory("dep/glfw")
 
 add_subdirectory("dep/glm")
 
+#Find OpenAL for audio
+find_package(OpenAL REQUIRED)
+
 set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF CACHE BOOL " " FORCE)
 set(ASSIMP_BUILD_OBJ_IMPORTER ON  CACHE BOOL " " FORCE)
 set(ASSIMP_BUILD_PLY_IMPORTER ON  CACHE BOOL " " FORCE)
@@ -36,6 +39,10 @@ add_executable(${PROJECT_NAME}
     src/Viewport.cpp
     src/Mesh.cpp
     src/Animation.cpp
+    src/AudioProducer.cpp
+    src/AudioEvent.cpp
+    src/AudioStream.cpp
+    src/AudioContext.cpp
 
     src/engmsc/Gauge.cpp
     src/engmsc/Engine2DRenderer.cpp
@@ -57,6 +64,7 @@ target_link_libraries(${PROJECT_NAME}
     glm
     glad
     assimp
+    ${OPENAL_LIBRARY}
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -64,4 +72,5 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     dep/glfw/include
     dep/glad/include
     dep/glm/
+    ${OPENAL_INCLUDE_DIR}
 )
