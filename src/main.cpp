@@ -8,6 +8,7 @@
 #include "engmsc/Gauge.hpp"
 #include "engmsc/Engine.hpp"
 #include "engmsc/EnginePhysics.hpp"
+#include "AudioContext.hpp"
 
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -30,6 +31,36 @@ void clearGLErrors()
     
 }
 
+class Prodtest : public EMAudioProducer
+{
+private:
+    double pos = 0.0;
+public:
+    size_t placeSamples(float* buffer, size_t bufferLen, float gain) override
+    {
+        if(pos / EMSAMPLE_RATE > getDuration())
+        {
+            return 0;
+        }
+
+        for(size_t i = 0; i < bufferLen; i++)
+        {
+            buffer[i] += (float) glm::sin(pos * 3.14 * 2000 / EMSAMPLE_RATE);
+            pos++;
+        }
+
+        return 0;
+    }
+    double getDuration() const override
+    {
+        return 0.25;
+    }
+    bool hasExpired() const override
+    {
+        return pos / EMSAMPLE_RATE > getDuration();
+    }
+};
+
 int main(int argc, char* argv[])
 {
     mainLogger.infof("Starting Up");
@@ -43,6 +74,12 @@ int main(int argc, char* argv[])
     const EMKeyboard& keyboard = window.getKeyboard();
     const EMMouse& mouse = window.getMouse();
     emui::setWindow(window);
+
+    // Setup Audio
+    EMOpenALContext audioCtx;
+    audioCtx.initContext();
+    EMAudioStream audStream;
+    audioCtx.addStream(audStream);
 
     // Create gauges
     EMGauge tach;
@@ -84,6 +121,12 @@ int main(int argc, char* argv[])
         glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        if(mouse.buttonJustPressed(GLFW_MOUSE_BUTTON_1))
+        {
+            audStream.play(EMAudioEvent(new Prodtest(), 0.3f));
+        }
+        audioCtx.update();
+
         // Render engine
         double torque = 0.0;
         if(keyboard.isKeyPressed(GLFW_KEY_LEFT)) torque = -30000;
@@ -117,6 +160,7 @@ int main(int argc, char* argv[])
         glfwPollEvents();
     }
 
+    audioCtx.destoryContext();
     glfwTerminate();
 
     return 0;
