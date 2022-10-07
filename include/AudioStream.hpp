@@ -47,17 +47,9 @@ private:
         data* data;
     };
 
-    struct TimedEvent
-    {
-        TimedEvent(const EMAudioEvent& event, double time);
-        EMAudioEvent event;
-        double timeToStart;
-        bool hasStarted;
-    };
-
     int m_nbEvents;
     
-    std::forward_list<TimedEvent> m_events;
+    std::forward_list<EMAudioEvent> m_events;
     std::mutex m_streamMutex;
 
     std::queue<Buffer*> m_outputQueue;

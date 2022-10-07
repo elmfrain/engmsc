@@ -8,16 +8,11 @@ static const double m_bufferDuration = double(EMSAMPLES_PER_BUFFER) / EMSAMPLE_R
 
 static const double m_compensationDelay = m_bufferDuration * EMBUFFER_POOL_SIZE * 1.2;
 
-EMAudioStream::TimedEvent::TimedEvent(const EMAudioEvent& e, double time) :
-    event(e),
-    timeToStart(time)
-{
-}
-
 EMAudioStream::EMAudioStream() :
     m_buffersData(new data[EMSAMPLES_PER_BUFFER * EMBUFFER_POOL_SIZE]),
     m_timeStreamStarted(glfwGetTime()),
-    m_bufferTime(-m_compensationDelay)
+    m_bufferTime(-m_compensationDelay),
+    m_nbEvents(0)
 {
     for(int i = 0; i < EMBUFFER_POOL_SIZE; i++)
     {
@@ -29,9 +24,9 @@ EMAudioStream::EMAudioStream() :
 
 EMAudioStream::~EMAudioStream()
 {
-    for(TimedEvent& event : m_events)
+    for(EMAudioEvent& event : m_events)
     {
-        delete event.event.m_audioProducer;
+        delete event.m_audioProducer;
     }
 }
 
@@ -39,21 +34,24 @@ void EMAudioStream::play(const EMAudioEvent& event)
 {
     m_nbEvents++;
     std::unique_lock<std::mutex> lock(m_streamMutex);
-    m_events.emplace_front(event, glfwGetTime());
+    m_events.emplace_front(event);
+    m_events.front().m_startTime = glfwGetTime();
 }
 
 void EMAudioStream::playIn(const EMAudioEvent& event, double seconds)
 {
     m_nbEvents++;
     std::unique_lock<std::mutex> lock(m_streamMutex);
-    m_events.emplace_front(event, glfwGetTime() + seconds);
+    m_events.emplace_front(event);
+    m_events.front().m_startTime = glfwGetTime() + seconds;
 }
 
 void EMAudioStream::playAt(const EMAudioEvent& event, double seconds)
 {
     m_nbEvents++;
     std::unique_lock<std::mutex> lock(m_streamMutex);
-    m_events.emplace_front(event, seconds);
+    m_events.emplace_front(event);
+    m_events.front().m_startTime = seconds;
 }
 
 const EMAudioStream::data* EMAudioStream::getNextBuffer()
@@ -102,31 +100,31 @@ void EMAudioStream::fillNextBuffers()
         {
             // Produce samples from audio events onto buffer
             std::unique_lock<std::mutex> lock(m_streamMutex);
-            for(TimedEvent& event : m_events)
+            for(EMAudioEvent& event : m_events)
             {
-                if(!event.hasStarted &&
-                m_bufferTime < event.timeToStart && event.timeToStart < m_bufferTime + m_bufferDuration)
+                if(!event.m_hasStarted &&
+                m_bufferTime < event.m_startTime && event.m_startTime < m_bufferTime + m_bufferDuration)
                 {
-                    event.hasStarted = true;
-                    int sampleStart = (int) (event.timeToStart - m_bufferTime) * EMSAMPLE_RATE;
+                    event.m_hasStarted = true;
+                    int sampleStart = (int) (event.m_startTime - m_bufferTime) * EMSAMPLE_RATE;
 
-                    event.event.m_audioProducer->placeSamples(
+                    event.m_audioProducer->placeSamples(
                     m_workBuffer.data() + sampleStart, EMSAMPLES_PER_BUFFER - sampleStart);
                     continue;
                 }
-                else if(event.hasStarted)
+                else if(event.m_hasStarted)
                 {
-                    event.event.m_audioProducer->placeSamples(m_workBuffer.data(), EMSAMPLES_PER_BUFFER);
+                    event.m_audioProducer->placeSamples(m_workBuffer.data(), EMSAMPLES_PER_BUFFER);
                 }
             }
 
             // Remove expired events
-            m_events.remove_if([&] (TimedEvent& e)
+            m_events.remove_if([&] (EMAudioEvent& event)
             {
-                if(e.event.m_audioProducer->hasExpired() || !e.hasStarted && e.timeToStart < m_bufferTime)
+                if(event.m_audioProducer->hasExpired() || !event.m_hasStarted && event.m_startTime < m_bufferTime)
                 {
                     m_nbEvents--;
-                    delete e.event.m_audioProducer;
+                    delete event.m_audioProducer;
                     return true;
                 }
                 return false;
@@ -135,12 +133,12 @@ void EMAudioStream::fillNextBuffers()
             // If falling behind, remove static audio events
             if(glfwGetTime() - m_bufferTime > m_compensationDelay * 3.0)
             {
-                m_events.remove_if([&](TimedEvent& e)
+                m_events.remove_if([&](EMAudioEvent& event)
                 {
-                    if(e.event.m_audioProducer->getDuration() > 0.0)
+                    if(event.m_audioProducer->getDuration() > 0.0)
                     {
                         m_nbEvents--;
-                        delete e.event.m_audioProducer;
+                        delete event.m_audioProducer;
                         return true;
                     }
                     return false;

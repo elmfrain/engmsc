@@ -20,7 +20,8 @@ private:
     float m_gain;
     float m_pitch;
     EMAudioProducer* m_audioProducer;
-    double m_samplePos;
+    double m_startTime;
+    bool m_hasStarted;
 };
 
 #endif // EMAUDIO_EVENT_HPP

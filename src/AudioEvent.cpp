@@ -4,7 +4,8 @@ EMAudioEvent::EMAudioEvent(EMAudioProducer* producer, float gain, float pitch) :
     m_audioProducer(producer),
     m_gain(gain),
     m_pitch(pitch),
-    m_samplePos(0.0)
+    m_startTime(0.0),
+    m_hasStarted(false)
 {
     m_audioProducer->m_gain = gain;
     m_audioProducer->m_pitch = pitch;
