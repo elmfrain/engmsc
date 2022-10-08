@@ -179,7 +179,8 @@ static void i_simulationStep(double timeDelta)
         cylDym.cylPressure += (cylDym.exhaustPressure - cylDym.cylPressure) * exhaustAir * timeDelta;
 
         cylDym.exhaustPressure += (cylDym.cylPressure - cylDym.exhaustPressure) * exhaustAir * timeDelta;
-        cylDym.exhaustPressure += (ONE_ATM_PRES - cylDym.exhaustPressure) * 100.0 * timeDelta;
+        cylDym.exhaustPressure += 
+        (ONE_ATM_PRES - cylDym.exhaustPressure) * (cyl.exhaustPortArea / AIR_VISCOSITY) * timeDelta;
 
         // Calculate torque applied to the crank
         double atmForce = ONE_ATM_PRES * cylDym.pistonArea;

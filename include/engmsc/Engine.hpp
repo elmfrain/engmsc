@@ -16,10 +16,15 @@ struct EMEngineCylinder
     float combustionChamberVolume;
 
     float intakeValveRadius;
+    float intakePortArea;
+    float intakeRunnerVolume;
     float camIntakeAngle;
     float camIntakeLift;
     float camIntakeDuration;
+
     float exhaustValveRadius;
+    float exhaustPortArea;
+    float exhaustRunnerVolume;
     float camExhaustAngle;
     float camExhaustLift;
     float camExhaustDuration;
