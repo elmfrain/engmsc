@@ -58,7 +58,7 @@ public:
 
                 float r = float(rand()) / RAND_MAX - 0.5f;
                 float sample = (cylStatus.exhaustPressure - 101325) * 5e-5f;
-                sample += r * cylStatus.exhaustVelocity * 5e-8f;
+                sample += r * cylStatus.exhaustVelocity * 1e-8f;
                 value += sample;
             }
             buffer[i] += highpass.filter(value);
