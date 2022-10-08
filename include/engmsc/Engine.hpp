@@ -48,6 +48,8 @@ struct EMEngineAssembly
 
     double rotationalMass;
     double frictionTorque;
+
+    double trottle;
 };
 
 #endif // EMENGINE_HPP
