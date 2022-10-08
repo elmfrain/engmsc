@@ -51,27 +51,29 @@ int main(int argc, char* argv[])
     tach.setText("RPMx1000");
     EMGauge::Profile& tachProfile = tach.getProfile();
     tachProfile.radius = 120;
-    tachProfile.numMarkings = 5;
-    tachProfile.subdivisions = 5;
+    tachProfile.numMarkings = 9;
+    tachProfile.subdivisions = 3;
     tach.applyProfile();
-    tach.setRange(0, 4);
+    tach.setRange(0, 8);
     EMGauge baro;
-    baro.setText("Cyl kPa");
+    baro.setText("Exhuast kPa");
     EMGauge::Profile& baroProfile = baro.getProfile();
     baroProfile.radius = 120;
     baroProfile.numMarkings = 9;
     baroProfile.subdivisions = 3;
     baro.applyProfile();
-    baro.setRange(0, 800);
-
-    EMTimer timer(2000.0);
+    baro.setRange(0, 200);
 
     // Create Engine Assembly
     EMEngineAssembly engine;
-    engine.frictionTorque = 1000;
+    engine.frictionTorque = 5000;
     engine.rotationalMass = 1000;
-    engine.cylinders.back().pistonFrictionForce = 200;
     engine.cylinders.back().deckClearance = 0.1f;
+    engine.cylinders.back().bankAngle = -0.785;
+    engine.cylinders.emplace_back();
+    engine.cylinders.back().deckClearance = 0.1f;
+    engine.cylinders.back().angleOffset = 4.712f;
+    engine.cylinders.back().bankAngle = 0.785;
 
     // Init engine renderer and physics
     EMEngine2DRenderer::init();
@@ -87,6 +89,8 @@ int main(int argc, char* argv[])
     audioCtx.addStream(audStream);
     audStream.play(EMAudioEvent(EMEngineAudio::getAudioProducer()));
 
+    EMTimer timer(2000.0);
+
     while(!window.shouldClose())
     {
         glViewport(0, 0, window.getWidth(), window.getHeight());
@@ -97,8 +101,8 @@ int main(int argc, char* argv[])
 
         // Render engine
         double torque = 0.0;
-        if(keyboard.isKeyPressed(GLFW_KEY_LEFT)) torque = -30000;
-        if(keyboard.isKeyPressed(GLFW_KEY_RIGHT)) torque = 30000;
+        if(keyboard.isKeyPressed(GLFW_KEY_LEFT)) torque = -200000;
+        if(keyboard.isKeyPressed(GLFW_KEY_RIGHT)) torque = 200000;
         int steps = timer.ticksPassed();
         for(int i = 0; i < steps; i++)
         {
@@ -116,7 +120,7 @@ int main(int argc, char* argv[])
         tach.setValue(rpm / 1000.0f);
         tach.draw();
         baro.x = tach.x - 240;
-        baro.setValue((float) EMEnginePhysics::getCylPressure(0) * 1e-3f);
+        baro.setValue((float) EMEnginePhysics::getExhaustPressure(0) * 1e-3f);
         baro.draw();
 
         emui::genString(std::to_string(audStream.getNbEvents()).c_str(), 0, 0, 0xFFFFFFFF, emui::TOP_LEFT);
