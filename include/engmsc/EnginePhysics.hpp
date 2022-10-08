@@ -13,6 +13,7 @@ namespace EMEnginePhysics
     void update(double timeDelta, int steps);
 
     double getCylPressure(int cylNum);
+    double getIntakePressure(int cylNum);
     double getExhaustPressure(int cylNum);
     double getIntakeAirVelocity(int cylNum);
 }

@@ -119,6 +119,13 @@ double EMEnginePhysics::getCylPressure(int cylNum)
     return m_cylDynamics[cylNum].cylPressure;
 }
 
+double EMEnginePhysics::getIntakePressure(int cylNum)
+{
+    assert(cylNum < m_cylDynamics.size() && -1 < cylNum);
+
+    return m_cylDynamics[cylNum].intakePressure;
+}
+
 double EMEnginePhysics::getExhaustPressure(int cylNum)
 {
     assert(cylNum < m_cylDynamics.size() && -1 < cylNum);
@@ -176,7 +183,7 @@ static void i_simulationStep(double timeDelta)
         // Calculate intake pressure
         cylDym.intakePressure += (cylDym.cylPressure - cylDym.intakePressure) * intakeAir * timeDelta;
         cylDym.intakePressure +=
-        (ONE_ATM_PRES - cylDym.intakePressure) * (cyl.intakePortArea / AIR_VISCOSITY) * timeDelta;
+        (ONE_ATM_PRES - cylDym.intakePressure) * (cyl.intakePortArea * m_engine->trottle / AIR_VISCOSITY) * timeDelta;
 
         // Calculate cylinder pressure depending on the exhaust valve's position
         double exhaustAir = cylDym.exhaustValveArea *
