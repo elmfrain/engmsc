@@ -10,6 +10,8 @@ add_subdirectory("dep/glfw")
 
 add_subdirectory("dep/glm")
 
+add_subdirectory("dep/iir1")
+
 #Find OpenAL for audio
 find_package(OpenAL REQUIRED)
 
@@ -66,6 +68,7 @@ target_link_libraries(${PROJECT_NAME}
     glad
     assimp
     ${OPENAL_LIBRARY}
+    iir::iir_static
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
