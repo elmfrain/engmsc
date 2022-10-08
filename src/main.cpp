@@ -56,13 +56,19 @@ int main(int argc, char* argv[])
     tach.applyProfile();
     tach.setRange(0, 8);
     EMGauge baro;
-    baro.setText("Exhuast kPa");
+    baro.setText("Intake kPa");
     EMGauge::Profile& baroProfile = baro.getProfile();
     baroProfile.radius = 120;
     baroProfile.numMarkings = 9;
     baroProfile.subdivisions = 3;
     baro.applyProfile();
     baro.setRange(0, 200);
+
+    EMGauge baro2;
+    baro2.setText("Exhaust kPa");
+    baro2.getProfile() = baroProfile;
+    baro2.applyProfile();
+    baro2.setRange(0, 200);
 
     // Create Engine Assembly
     EMEngineAssembly engine;
@@ -89,7 +95,7 @@ int main(int argc, char* argv[])
     audioCtx.addStream(audStream);
     audStream.play(EMAudioEvent(EMEngineAudio::getAudioProducer()));
 
-    EMTimer timer(2000.0);
+    EMTimer timer(10000.0);
 
     while(!window.shouldClose())
     {
@@ -101,8 +107,8 @@ int main(int argc, char* argv[])
 
         // Render engine
         double torque = 0.0;
-        if(keyboard.isKeyPressed(GLFW_KEY_LEFT)) torque = -200000;
-        if(keyboard.isKeyPressed(GLFW_KEY_RIGHT)) torque = 200000;
+        if(keyboard.isKeyPressed(GLFW_KEY_LEFT)) torque = -300000;
+        if(keyboard.isKeyPressed(GLFW_KEY_RIGHT)) torque = 300000;
         int steps = timer.ticksPassed();
         for(int i = 0; i < steps; i++)
         {
@@ -116,12 +122,15 @@ int main(int argc, char* argv[])
 
         float rpm = 60.0f * float(engine.crankSpeed / glm::two_pi<double>());
         tach.x = window.getWidth() - 120.0f;
-        tach.y = baro.y = window.getHeight() - 120.0f;
+        tach.y = baro.y = baro2.y = window.getHeight() - 120.0f;
         tach.setValue(rpm / 1000.0f);
         tach.draw();
         baro.x = tach.x - 240;
-        baro.setValue((float) EMEnginePhysics::getExhaustPressure(0) * 1e-3f);
+        baro.setValue((float) EMEnginePhysics::getIntakePressure(0) * 1e-3f);
         baro.draw();
+        baro2.x = baro.x - 240;
+        baro2.setValue((float) EMEnginePhysics::getExhaustPressure(0) * 1e-3f);
+        baro2.draw();
 
         emui::genString(std::to_string(audStream.getNbEvents()).c_str(), 0, 0, 0xFFFFFFFF, emui::TOP_LEFT);
         emui::genString(std::to_string(EMEngineAudio::m_engineLog.size()).c_str(), 100, 0, 0xFFFFFFFF, emui::TOP_LEFT);
