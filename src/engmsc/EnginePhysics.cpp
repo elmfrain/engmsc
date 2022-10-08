@@ -30,6 +30,7 @@ struct CylinderDynamics
     // Dynamic varaibles
     double cylVolume = 0.0;
     double cylPressure = ONE_ATM_PRES;
+    double intakePressure = ONE_ATM_PRES;
     double exhaustPressure = ONE_ATM_PRES;
 };
 
@@ -170,7 +171,12 @@ static void i_simulationStep(double timeDelta)
         double intakeAir = cylDym.intakeValveArea * 
         i_getCamLift(cylCrankAngle, cyl.camIntakeDuration, cyl.camIntakeLift, cyl.camIntakeAngle) /
         AIR_VISCOSITY;
-        cylDym.cylPressure += (ONE_ATM_PRES - cylDym.cylPressure) * intakeAir * timeDelta;
+        cylDym.cylPressure += (cylDym.intakePressure - cylDym.cylPressure) * intakeAir * timeDelta;
+
+        // Calculate intake pressure
+        cylDym.intakePressure += (cylDym.cylPressure - cylDym.intakePressure) * intakeAir * timeDelta;
+        cylDym.intakePressure +=
+        (ONE_ATM_PRES - cylDym.intakePressure) * (cyl.intakePortArea / AIR_VISCOSITY) * timeDelta;
 
         // Calculate cylinder pressure depending on the exhaust valve's position
         double exhaustAir = cylDym.exhaustValveArea *
@@ -178,6 +184,7 @@ static void i_simulationStep(double timeDelta)
         AIR_VISCOSITY;
         cylDym.cylPressure += (cylDym.exhaustPressure - cylDym.cylPressure) * exhaustAir * timeDelta;
 
+        // Calculate exhaust pressure
         cylDym.exhaustPressure += (cylDym.cylPressure - cylDym.exhaustPressure) * exhaustAir * timeDelta;
         cylDym.exhaustPressure += 
         (ONE_ATM_PRES - cylDym.exhaustPressure) * (cyl.exhaustPortArea / AIR_VISCOSITY) * timeDelta;
