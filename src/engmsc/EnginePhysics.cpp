@@ -30,6 +30,7 @@ struct CylinderDynamics
     // Dynamic varaibles
     double cylVolume = 0.0;
     double cylPressure = ONE_ATM_PRES;
+    double exhaustPressure = ONE_ATM_PRES;
 };
 
 static EMLogger m_logger("Engine Physics");
@@ -117,6 +118,13 @@ double EMEnginePhysics::getCylPressure(int cylNum)
     return m_cylDynamics[cylNum].cylPressure;
 }
 
+double EMEnginePhysics::getExhaustPressure(int cylNum)
+{
+    assert(cylNum < m_cylDynamics.size() && -1 < cylNum);
+
+    return m_cylDynamics[cylNum].exhaustPressure;
+}
+
 static inline double i_getPistonY(EMEngineCylinder& cyl, double angle)
 {
     angle = -angle + HALF_PI;
@@ -146,38 +154,51 @@ static void i_simulationStep(double timeDelta)
         CylinderDynamics& cylDym = m_cylDynamics[i];
         double cylCrankAngle = m_engine->crankAngle + cyl.angleOffset;
 
+        // Calculate piston location
         double pistonY = i_getPistonY(cyl, cylCrankAngle);
         double conrodAngle = glm::asin(glm::sin(cylCrankAngle) / cyl.rodLength);
         double torqueDist = glm::sin(conrodAngle) * pistonY;
 
+        // Calculate cylinder volume and pressure from the result
         double newVolume = (cylDym.tdcPistonY - pistonY) * cylDym.pistonArea + cylDym.minCylVolume;
         cylDym.cylPressure = cylDym.cylPressure * cylDym.cylVolume / newVolume;
 
+        // Calculate cylinder pressure from blowby
         cylDym.cylPressure += (ONE_ATM_PRES - cylDym.cylPressure) * cylDym.blowbyAmount * timeDelta;
 
+        // Calculate cylinder pressure depending on the intake valve's position
         double intakeAir = cylDym.intakeValveArea * 
         i_getCamLift(cylCrankAngle, cyl.camIntakeDuration, cyl.camIntakeLift, cyl.camIntakeAngle) /
         AIR_VISCOSITY;
         cylDym.cylPressure += (ONE_ATM_PRES - cylDym.cylPressure) * intakeAir * timeDelta;
 
+        // Calculate cylinder pressure depending on the exhaust valve's position
         double exhaustAir = cylDym.exhaustValveArea *
         i_getCamLift(cylCrankAngle, cyl.camExhaustDuration, cyl.camExhaustLift, cyl.camExhaustAngle) /
         AIR_VISCOSITY;
-        cylDym.cylPressure += (ONE_ATM_PRES - cylDym.cylPressure) * exhaustAir * timeDelta;
+        cylDym.cylPressure += (cylDym.exhaustPressure - cylDym.cylPressure) * exhaustAir * timeDelta;
 
+        cylDym.exhaustPressure += (cylDym.cylPressure - cylDym.exhaustPressure) * exhaustAir * timeDelta;
+        cylDym.exhaustPressure += (ONE_ATM_PRES - cylDym.exhaustPressure) * 100.0 * timeDelta;
+
+        // Calculate torque applied to the crank
         double atmForce = ONE_ATM_PRES * cylDym.pistonArea;
         double pistonForce = cylDym.pistonArea * cylDym.cylPressure - atmForce;
-
         cylDym.cylVolume = newVolume;
         netTorque += pistonForce * torqueDist;
         netFirctionTorque += cyl.pistonFrictionForce * glm::abs(torqueDist);
 
-        EMEngineAudio::m_engineLog.push_back((float) cylDym.cylPressure);
+        // Send cylinder status to the audio renderer
+        EMEngineAudio::CylinderStatus status;
+        status.timeDelta = timeDelta;
+        status.exhaustPressure = (float) cylDym.exhaustPressure;
+        status.exhaustVelocity = (float) ((cylDym.exhaustPressure - cylDym.cylPressure) * exhaustAir);
+        EMEngineAudio::m_engineLog.push_back(status);
     }
 
+    // Calculate and handle friction
     double frictionTorque = 0.0 < m_engine->crankSpeed ? netFirctionTorque : -netFirctionTorque;
     double frictionSpeed = (netFirctionTorque / m_engine->rotationalMass) * timeDelta;
-
     if(-frictionSpeed < m_engine->crankSpeed && m_engine->crankSpeed < frictionSpeed)
     {
         m_engine->crankSpeed = 0.0;
@@ -188,6 +209,7 @@ static void i_simulationStep(double timeDelta)
         }
     }
 
+    // Calucate angle and speed of crank from torque applied
     double acceleration = (netTorque - frictionTorque) / m_engine->rotationalMass;
     m_engine->crankSpeed += acceleration * timeDelta;
     m_engine->crankAngle += m_engine->crankSpeed * timeDelta;
