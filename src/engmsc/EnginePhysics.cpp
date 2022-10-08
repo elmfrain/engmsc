@@ -1,6 +1,7 @@
 #include "engmsc/EnginePhysics.hpp"
 
 #include "Logger.hpp"
+#include "engmsc/EngineAudio.hpp"
 
 #include <vector>
 #include <assert.h>
@@ -71,6 +72,12 @@ void EMEnginePhysics::setEngineAssembly(EMEngineAssembly& engine)
         cylDym.cylVolume =
         (cylDym.tdcPistonY - i_getPistonY(cyl, cyl.angleOffset)) * cylDym.pistonArea + cylDym.minCylVolume;
     }
+}
+
+EMEngineAssembly& EMEnginePhysics::getEngineAssembly()
+{
+    assert(m_engine != NULL);
+    return *m_engine;
 }
 
 void EMEnginePhysics::applyTorque(double torque)
@@ -164,6 +171,8 @@ static void i_simulationStep(double timeDelta)
         cylDym.cylVolume = newVolume;
         netTorque += pistonForce * torqueDist;
         netFirctionTorque += cyl.pistonFrictionForce * glm::abs(torqueDist);
+
+        EMEngineAudio::m_engineLog.push_back((float) cylDym.cylPressure);
     }
 
     double frictionTorque = 0.0 < m_engine->crankSpeed ? netFirctionTorque : -netFirctionTorque;

@@ -6,12 +6,14 @@
 namespace EMEnginePhysics
 {
     void setEngineAssembly(EMEngineAssembly& engine);
+    EMEngineAssembly& getEngineAssembly();
 
     void applyTorque(double torque);
 
     void update(double timeDelta, int steps);
 
     double getCylPressure(int cylNum);
+    double getIntakeAirVelocity(int cylNum);
 }
 
 #endif // EMENGINE_PHYSICS_HPP
