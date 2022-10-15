@@ -11,14 +11,16 @@ EMEngineCylinder::EMEngineCylinder() :
 
     intakeValveRadius(0.175f),
     intakePortArea(1.798e-3f),
-    intakeRunnerVolume(0.09f),
+    intakeRunnerLength(0.6f),
+    intakeRunnerVolume(0.16f),
     camIntakeAngle(-1.004f),
     camIntakeLift(0.068f),
     camIntakeDuration(2.217f),
 
     exhaustValveRadius(0.15f),
+    exhaustRunnerLength(0.6f),
     exhaustPortArea(1.798e-3f),
-    exhaustRunnerVolume(0.09f),
+    exhaustRunnerVolume(0.16f),
     camExhaustAngle(1.004f),
     camExhaustLift(0.068f),
     camExhaustDuration(2.217f),
