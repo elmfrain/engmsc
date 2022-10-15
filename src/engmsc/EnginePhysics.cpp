@@ -8,13 +8,22 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
+#define RETURN_CYL_VALUE(value, cylIndex)\
+    assert(cylIndex < m_cylDynamics.size() && -1 < cylNum);\
+    return m_cylDynamics[cylIndex].value;
+
 #define HALF_PI glm::half_pi<double>()
 #define PI glm::pi<double>()
 #define THREE_HALF_PI glm::three_over_two_pi<double>()
 #define TWO_PI glm::two_pi<double>()
+#define ONE_OVER_PI_SQUARED 0.1013211836
 
-#define ONE_ATM_PRES 101325
-#define AIR_VISCOSITY 1.798e-5
+#define GAS_CONSTANT 8.31454621
+#define ONE_ATM_PRES 101325 // in Pascals
+#define AIR_VISCOSITY 19.53e-6 // in Pa * sec At 50c
+#define CONST_TEMP 323.15 // in kelvin 50c
+#define AIR_MOLAR_MASS 0.02897 // in kg * col-1
+#define ATM_AIR_DENSITY 1.0925 // kg * m-3
 
 struct CylinderDynamics
 {
@@ -24,12 +33,13 @@ struct CylinderDynamics
     double minCylVolume = 0.0;
     double pistonArea = 0.0;
     double blowbyAmount = 0.0;
-    double intakeValveArea = 0.0;
-    double exhaustValveArea = 0.0;
+    double intakeValveRim = 0.0;
+    double exhaustValveRim = 0.0;
 
     // Dynamic varaibles
     double cylVolume = 0.0;
     double cylPressure = ONE_ATM_PRES;
+    double cylGasMass = 0.0;
     double intakePressure = ONE_ATM_PRES;
     double exhaustPressure = ONE_ATM_PRES;
 };
@@ -68,11 +78,14 @@ void EMEnginePhysics::setEngineAssembly(EMEngineAssembly& engine)
         cyl.combustionChamberVolume + cyl.gasketHeight * pistonArea + cyl.deckClearance * pistonArea;
         cylDym.pistonArea = pistonArea;
         cylDym.blowbyAmount = cyl.blowbyArea / AIR_VISCOSITY;
-        cylDym.intakeValveArea = PI * glm::pow(cyl.intakeValveRadius, 2.0);
-        cylDym.exhaustValveArea = PI * glm::pow(cyl.exhaustValveRadius, 2.0);
+        cylDym.intakeValveRim = PI * 2.0 * cyl.intakeValveRadius;
+        cylDym.exhaustValveRim = PI * 2.0 * cyl.exhaustValveRadius;
 
         cylDym.cylVolume =
         (cylDym.tdcPistonY - i_getPistonY(cyl, cyl.angleOffset)) * cylDym.pistonArea + cylDym.minCylVolume;
+        cylDym.cylGasMass =
+        cylDym.cylVolume * ((AIR_MOLAR_MASS * cylDym.cylPressure) / (GAS_CONSTANT * CONST_TEMP));
+
     }
 }
 
@@ -114,23 +127,22 @@ void EMEnginePhysics::update(double timeDelta, int steps)
 
 double EMEnginePhysics::getCylPressure(int cylNum)
 {
-    assert(cylNum < m_cylDynamics.size() && -1 < cylNum);
-
-    return m_cylDynamics[cylNum].cylPressure;
+    RETURN_CYL_VALUE(cylPressure, cylNum);
 }
 
 double EMEnginePhysics::getIntakePressure(int cylNum)
 {
-    assert(cylNum < m_cylDynamics.size() && -1 < cylNum);
-
-    return m_cylDynamics[cylNum].intakePressure;
+    RETURN_CYL_VALUE(intakePressure, cylNum);
 }
 
 double EMEnginePhysics::getExhaustPressure(int cylNum)
 {
-    assert(cylNum < m_cylDynamics.size() && -1 < cylNum);
+    RETURN_CYL_VALUE(exhaustPressure, cylNum);
+}
 
-    return m_cylDynamics[cylNum].exhaustPressure;
+double EMEnginePhysics::getCylGasMass(int cylNum)
+{
+    RETURN_CYL_VALUE(cylGasMass, cylNum);
 }
 
 static inline double i_getPistonY(EMEngineCylinder& cyl, double angle)
@@ -167,47 +179,45 @@ static void i_simulationStep(double timeDelta)
         double conrodAngle = glm::asin(glm::sin(cylCrankAngle) / cyl.rodLength);
         double torqueDist = glm::sin(conrodAngle) * pistonY;
 
-        // Calculate cylinder volume and pressure from the result
-        double newVolume = (cylDym.tdcPistonY - pistonY) * cylDym.pistonArea + cylDym.minCylVolume;
-        cylDym.cylPressure = cylDym.cylPressure * cylDym.cylVolume / newVolume;
+        double cylVolume = (cylDym.tdcPistonY - pistonY) * cylDym.pistonArea + cylDym.minCylVolume;
+        double cylGasMass = cylDym.cylGasMass;
+        double cylPressure = (cylGasMass * GAS_CONSTANT * CONST_TEMP) / (cylVolume * AIR_MOLAR_MASS);
+        double cylGasDensity = (AIR_MOLAR_MASS * cylDym.cylPressure) / (GAS_CONSTANT * CONST_TEMP);
+        double maxVolFlow = glm::abs(cylVolume - cylDym.cylVolume) / timeDelta;
 
-        // Calculate cylinder pressure from blowby
-        cylDym.cylPressure += (ONE_ATM_PRES - cylDym.cylPressure) * cylDym.blowbyAmount * timeDelta;
+        // Calculate air flow from intake valve
+        double intakeOpening = 
+        cylDym.intakeValveRim * i_getCamLift(cylCrankAngle, cyl.camIntakeDuration, cyl.camIntakeLift, cyl.camIntakeAngle);
+        double r = intakeOpening * intakeOpening / PI;
+        double pressDiff = ONE_ATM_PRES - cylPressure;
+        double intakeFlow = pressDiff * r / (8.0 * AIR_VISCOSITY * cyl.intakeRunnerLength);
+        intakeFlow = glm::max(-maxVolFlow, glm::min(intakeFlow, maxVolFlow));
+        cylGasMass += intakeFlow * (intakeFlow < 0.0 ? cylGasDensity : ATM_AIR_DENSITY) * timeDelta;
 
-        // Calculate cylinder pressure depending on the intake valve's position
-        double intakeAir = cylDym.intakeValveArea * 
-        i_getCamLift(cylCrankAngle, cyl.camIntakeDuration, cyl.camIntakeLift, cyl.camIntakeAngle) /
-        AIR_VISCOSITY;
-        cylDym.cylPressure += (cylDym.intakePressure - cylDym.cylPressure) * intakeAir * timeDelta;
+        // Calculate air flow through exhaust valve
+        double exhaustOpening =
+        cylDym.exhaustValveRim * i_getCamLift(cylCrankAngle, cyl.camExhaustDuration, cyl.camExhaustLift, cyl.camExhaustAngle);
+        r = exhaustOpening * exhaustOpening / PI;
+        pressDiff = ONE_ATM_PRES - cylPressure;
+        double exhaustFlow = pressDiff * r / (8.0 * AIR_VISCOSITY * cyl.exhaustRunnerLength);
+        exhaustFlow = glm::max(-maxVolFlow, glm::min(exhaustFlow, maxVolFlow));
+        cylGasMass += exhaustFlow * (exhaustFlow < 0.0 ? cylGasDensity : ATM_AIR_DENSITY) * timeDelta;
 
-        // Calculate intake pressure
-        cylDym.intakePressure += (cylDym.cylPressure - cylDym.intakePressure) * intakeAir * timeDelta;
-        cylDym.intakePressure +=
-        (ONE_ATM_PRES - cylDym.intakePressure) * (cyl.intakePortArea * m_engine->trottle / AIR_VISCOSITY) * timeDelta;
-
-        // Calculate cylinder pressure depending on the exhaust valve's position
-        double exhaustAir = cylDym.exhaustValveArea *
-        i_getCamLift(cylCrankAngle, cyl.camExhaustDuration, cyl.camExhaustLift, cyl.camExhaustAngle) /
-        AIR_VISCOSITY;
-        cylDym.cylPressure += (cylDym.exhaustPressure - cylDym.cylPressure) * exhaustAir * timeDelta;
-
-        // Calculate exhaust pressure
-        cylDym.exhaustPressure += (cylDym.cylPressure - cylDym.exhaustPressure) * exhaustAir * timeDelta;
-        cylDym.exhaustPressure += 
-        (ONE_ATM_PRES - cylDym.exhaustPressure) * (cyl.exhaustPortArea / AIR_VISCOSITY) * timeDelta;
+        cylDym.cylVolume = cylVolume;
+        cylDym.cylPressure = cylPressure;
+        cylDym.cylGasMass = cylGasMass;
 
         // Calculate torque applied to the crank
         double atmForce = ONE_ATM_PRES * cylDym.pistonArea;
         double pistonForce = cylDym.pistonArea * cylDym.cylPressure - atmForce;
-        cylDym.cylVolume = newVolume;
         netTorque += pistonForce * torqueDist;
         netFirctionTorque += cyl.pistonFrictionForce * glm::abs(torqueDist);
 
         // Send cylinder status to the audio renderer
         EMEngineAudio::CylinderStatus status;
         status.timeDelta = timeDelta;
+        status.exhaustVelocity = (float) exhaustFlow;
         status.exhaustPressure = (float) cylDym.exhaustPressure;
-        status.exhaustVelocity = (float) ((cylDym.exhaustPressure - cylDym.cylPressure) * exhaustAir);
         EMEngineAudio::m_engineLog.push_back(status);
     }
 

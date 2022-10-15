@@ -15,6 +15,9 @@ namespace EMEnginePhysics
     double getCylPressure(int cylNum);
     double getIntakePressure(int cylNum);
     double getExhaustPressure(int cylNum);
+
+    double getCylGasMass(int cylNum);
+
     double getIntakeAirVelocity(int cylNum);
 }
 
