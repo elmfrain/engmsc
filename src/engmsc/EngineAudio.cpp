@@ -57,11 +57,11 @@ public:
                 auto cylStatus = m_cylStatuses[cyl];
 
                 float r = float(rand()) / RAND_MAX - 0.5f;
-                float sample = (cylStatus.exhaustPressure - 101325) * 5e-5f;
-                sample += r * cylStatus.exhaustVelocity * 1e-1f;
+                float sample = (cylStatus.exhaustPressure - 101325) * 3e-5f;
+                sample += r * cylStatus.exhaustVelocity * 3e-4f;
                 value += sample;
             }
-            buffer[i] += highpass.filter(value);
+            buffer[i] += highpass.filter(value) * m_gain;
         }
 
         return 0;
