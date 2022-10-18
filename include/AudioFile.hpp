@@ -1316,4 +1316,7 @@ void AudioFile<T>::reportError (std::string errorMessage)
     _Pragma("GCC diagnostic pop")
 #endif
 
+// ----- Namespaced AudioFile For Integration In EngMsc ----- //
+typedef AudioFile<float> EMAudioFile;
+
 #endif /* AudioFile_h */
