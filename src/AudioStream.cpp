@@ -27,6 +27,10 @@ EMAudioInsert::~EMAudioInsert()
     {
         delete filter;
     }
+    for(EMAudioEvent& event : m_events)
+    {
+        delete event.getProducer();
+    }
 }
 
 float EMAudioInsert::getGain() const

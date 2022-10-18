@@ -26,6 +26,7 @@ set(BUILD_SHARED_LIBS         OFF CACHE BOOL " " FORCE)
 add_subdirectory("dep/assimp")
 
 add_executable(${PROJECT_NAME}
+# Main game engine source files
     src/main.cpp
     src/Window.cpp
     src/UIRender.cpp
@@ -45,7 +46,9 @@ add_executable(${PROJECT_NAME}
     src/AudioEvent.cpp
     src/AudioStream.cpp
     src/AudioContext.cpp
+    src/AudioFilter.cpp
 
+# Engine Music application source files
     src/engmsc/Gauge.cpp
     src/engmsc/Engine2DRenderer.cpp
     src/engmsc/Engine.cpp
