@@ -15,6 +15,7 @@
 #include <glm/gtx/string_cast.hpp>
 #include <string>
 #include <Iir.h>
+#include <AudioFile.hpp>
 
 EMLogger mainLogger("Main");
 
@@ -33,41 +34,45 @@ void clearGLErrors()
     
 }
 
-class LowPassFilter : public EMAudioFilter
+class AudioFileProducer : public EMAudioProducer
 {
 private:
-    Iir::Butterworth::LowPass<4> lowpass;
+    double duration = 0.0;
+    int numSamples = 0;
+    int pos = 0;
+    bool expired = false;
+    AudioFile<float>* sound;
 public:
-    LowPassFilter()
+    AudioFileProducer(AudioFile<float>* file)
     {
-        lowpass.setup(EMSAMPLE_RATE, 1000);
+        sound = file;
+        numSamples = file->getNumSamplesPerChannel();
+        duration = double(numSamples) / EMSAMPLE_RATE;
     }
 
-    virtual void filter(float* dest, float* in, size_t len) override
+    size_t placeSamples(float* buffer, size_t bufferLen) override
     {
-        for(size_t i = 0; i < len; i++)
+        for(size_t i = 0; i < bufferLen; i++)
         {
-            dest[i] = lowpass.filter(in[i]);
+            buffer[i] += sound->samples[0][pos++];
+            if(numSamples == pos)
+            {
+                expired = true;
+                break;
+            }
         }
-    }
-};
 
-class HighPassFilter : public EMAudioFilter
-{
-private:
-    Iir::Butterworth::HighPass<4> highpass;
-public:
-    HighPassFilter()
-    {
-        highpass.setup(EMSAMPLE_RATE, 500);
+        return 0;
     }
 
-    virtual void filter(float* dest, float* in, size_t len) override
+    double getDuration() const override
     {
-        for(size_t i = 0; i < len; i++)
-        {
-            dest[i] = highpass.filter(in[i]);
-        }
+        return duration;
+    }
+
+    bool hasExpired() const override
+    {
+        return expired;
     }
 };
 
@@ -158,15 +163,15 @@ int main(int argc, char* argv[])
 
     glEnable(GL_MULTISAMPLE);
 
+    AudioFile<float> sound;
+    sound.load("res/sound/conv.wav");
+
     // Setup Audio
     EMOpenALContext audioCtx;
     audioCtx.initContext();
     EMAudioStream audStream;
     audioCtx.addStream(audStream);
-    audStream.newInsert().addFilter(new LowPassFilter());
-    audStream.getInsert(1).addFilter(new HighPassFilter());
-    //audStream.getMainInsert().addFilter(new LowPassFilter());
-    audStream.play(EMAudioEvent(EMEngineAudio::getAudioProducer()), 1);
+    audStream.play(EMAudioEvent(EMEngineAudio::getAudioProducer()));
 
     EMTimer timer(40000.0);
     EMTimer idleTimer(9.0);
@@ -189,6 +194,8 @@ int main(int argc, char* argv[])
         double torque = 0.0;
         if(keyboard.isKeyPressed(GLFW_KEY_LEFT)) torque = -250000;
         if(keyboard.isKeyPressed(GLFW_KEY_RIGHT)) torque = 250000;
+        if(keyboard.keyJustPressed(GLFW_KEY_SPACE))
+            audStream.play(EMAudioEvent(new AudioFileProducer(&sound)));
         
         idle = glm::max(0.0, glm::min(idle, 1.0));
         engine.trottle = ((limiter ? -1.0f : axis[5]) + 1.0f) * 4.0 + 0.05;
