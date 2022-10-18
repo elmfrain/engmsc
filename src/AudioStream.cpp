@@ -8,6 +8,60 @@ static const double m_bufferDuration = double(EMSAMPLES_PER_BUFFER) / EMSAMPLE_R
 
 static const double m_compensationDelay = m_bufferDuration * EMBUFFER_POOL_SIZE * 1.2;
 
+EMAudioInsert::EMAudioInsert() :
+    EMAudioInsert(0)
+{
+
+}
+
+EMAudioInsert::EMAudioInsert(int id) :
+    m_id(id),
+    m_gain(1.0f)
+{
+
+}
+
+EMAudioInsert::~EMAudioInsert()
+{
+    for(EMAudioFilter* filter : m_filters)
+    {
+        delete filter;
+    }
+}
+
+float EMAudioInsert::getGain() const
+{
+    return m_gain;
+}
+
+void EMAudioInsert::setGain(float gain)
+{
+    m_gain = gain;
+}
+
+void EMAudioInsert::addFilter(EMAudioFilter* filter)
+{
+    m_filters.push_back(filter);
+}
+
+bool EMAudioInsert::removeFilter(EMAudioFilter* filter)
+{
+    for(EMAudioFilter* f : m_filters)
+    {
+        if(f == filter)
+        {
+            delete f;
+            return true;
+        }
+    }
+    return false;
+}
+
+size_t EMAudioInsert::numFilters() const
+{
+    return m_filters.size();
+}
+
 EMAudioStream::EMAudioStream() :
     m_buffersData(new data[EMSAMPLES_PER_BUFFER * EMBUFFER_POOL_SIZE]),
     m_timeStreamStarted(glfwGetTime()),
@@ -20,38 +74,75 @@ EMAudioStream::EMAudioStream() :
         m_buffers[i].data = m_buffersData.get() + EMSAMPLES_PER_BUFFER * i;
         m_inputQueue.push(&m_buffers[i]);
     }
+
+    m_inserts.emplace_back();
 }
 
 EMAudioStream::~EMAudioStream()
 {
-    for(EMAudioEvent& event : m_events)
+    for(EMAudioInsert& insert : m_inserts)
+    for(EMAudioEvent& event : insert.m_events)
     {
         delete event.m_audioProducer;
     }
 }
 
-void EMAudioStream::play(const EMAudioEvent& event)
+void EMAudioStream::play(const EMAudioEvent& event, int insertIndex)
 {
+    if(m_inserts.size() <= insertIndex || insertIndex < 0) insertIndex = 0;
+
     m_nbEvents++;
     std::unique_lock<std::mutex> lock(m_streamMutex);
-    m_events.emplace_front(event);
-    m_events.front().m_startTime = glfwGetTime();
+
+    auto& eventList = m_inserts[insertIndex].m_events;
+    eventList.emplace_front(event);
+    eventList.front().m_startTime = glfwGetTime();
 }
 
-void EMAudioStream::playIn(const EMAudioEvent& event, double seconds)
+void EMAudioStream::playIn(const EMAudioEvent& event, double seconds, int insertIndex)
 {
+    if(m_inserts.size() <= insertIndex || insertIndex < 0) insertIndex = 0;
+
     m_nbEvents++;
     std::unique_lock<std::mutex> lock(m_streamMutex);
-    m_events.emplace_front(event);
-    m_events.front().m_startTime = glfwGetTime() + seconds;
+
+    auto& eventList = m_inserts[insertIndex].m_events;
+    eventList.emplace_front(event);
+    eventList.front().m_startTime = glfwGetTime() + seconds;
 }
 
-void EMAudioStream::playAt(const EMAudioEvent& event, double seconds)
+void EMAudioStream::playAt(const EMAudioEvent& event, double seconds, int insertIndex)
 {
+    if(m_inserts.size() <= insertIndex || insertIndex < 0) insertIndex = 0;
+
     m_nbEvents++;
     std::unique_lock<std::mutex> lock(m_streamMutex);
-    m_events.emplace_front(event);
-    m_events.front().m_startTime = seconds;
+
+    auto& eventList = m_inserts[insertIndex].m_events;
+    eventList.emplace_front(event);
+    eventList.front().m_startTime = seconds;
+}
+
+EMAudioInsert& EMAudioStream::newInsert()
+{
+    return m_inserts.emplace_back((int) m_inserts.size());
+}
+
+EMAudioInsert& EMAudioStream::getInsert(int id)
+{
+    return m_inserts[id];
+}
+
+EMAudioInsert& EMAudioStream::getMainInsert()
+{
+    return getInsert(0);
+}
+
+void EMAudioStream::removeInsert(int id)
+{
+    assert(id != 0);
+
+    m_inserts.erase(m_inserts.begin() + id);
 }
 
 const EMAudioStream::data* EMAudioStream::getNextBuffer()
@@ -98,28 +189,55 @@ void EMAudioStream::fillNextBuffers()
         m_workBuffer.fill(0.0f);
 
         {
-            // Produce samples from audio events onto buffer
             std::unique_lock<std::mutex> lock(m_streamMutex);
-            for(EMAudioEvent& event : m_events)
-            {
-                if(!event.m_hasStarted &&
-                m_bufferTime < event.m_startTime && event.m_startTime < m_bufferTime + m_bufferDuration)
-                {
-                    event.m_hasStarted = true;
-                    int sampleStart = (int) (event.m_startTime - m_bufferTime) * EMSAMPLE_RATE;
 
-                    event.m_audioProducer->placeSamples(
-                    m_workBuffer.data() + sampleStart, EMSAMPLES_PER_BUFFER - sampleStart);
-                    continue;
-                }
-                else if(event.m_hasStarted)
+            // Produce samples from audio events from each insert,
+            // apply filters, and add onto work buffer
+            for(EMAudioInsert& insert : m_inserts)
+            {
+                m_insertWorkBuffer.fill(0.0f);
+                m_filterWorkBuffer.fill(0.0f);
+
+                for(EMAudioEvent& event : insert.m_events)
                 {
-                    event.m_audioProducer->placeSamples(m_workBuffer.data(), EMSAMPLES_PER_BUFFER);
+                    if(!event.m_hasStarted &&
+                    m_bufferTime < event.m_startTime && event.m_startTime < m_bufferTime + m_bufferDuration)
+                    {
+                        event.m_hasStarted = true;
+                        int sampleStart = (int) (event.m_startTime - m_bufferTime) * EMSAMPLE_RATE;
+    
+                        event.m_audioProducer->placeSamples(
+                        m_insertWorkBuffer.data() + sampleStart, EMSAMPLES_PER_BUFFER - sampleStart);
+                        continue;
+                    }
+                    else if(event.m_hasStarted)
+                    {
+                        event.m_audioProducer->placeSamples(
+                        m_insertWorkBuffer.data(), EMSAMPLES_PER_BUFFER);
+                    }
+                }
+
+                float* inBuffer = m_insertWorkBuffer.data();
+                float* outBuffer = m_filterWorkBuffer.data();
+                for(EMAudioFilter* filter : insert.m_filters)
+                {
+                    filter->filter(outBuffer, inBuffer, EMSAMPLES_PER_BUFFER);
+
+                    // Swap buffers
+                    float* temp = inBuffer;
+                    inBuffer = outBuffer;
+                    outBuffer = temp;
+                }
+
+                for(int i = 0; i < EMSAMPLES_PER_BUFFER; i++)
+                {
+                    m_workBuffer[i] += inBuffer[i];
                 }
             }
 
             // Remove expired events or let late events play
-            m_events.remove_if([&] (EMAudioEvent& event)
+            for(EMAudioInsert& insert: m_inserts)
+            insert.m_events.remove_if([&] (EMAudioEvent& event)
             {
                 if(event.m_audioProducer->hasExpired())
                 {
@@ -134,12 +252,13 @@ void EMAudioStream::fillNextBuffers()
                 return false;
             });
 
-            // If falling behind, remove static audio events
+            // If falling behind, remove non-static audio events
             // Note: Static events are known for their producer having a duration
             // of 0.0
             if(glfwGetTime() - m_bufferTime > m_compensationDelay * 2.0)
             {
-                m_events.remove_if([&](EMAudioEvent& event)
+                for(EMAudioInsert& insert: m_inserts)
+                insert.m_events.remove_if([&](EMAudioEvent& event)
                 {
                     if(event.m_audioProducer->getDuration() > 0.0)
                     {

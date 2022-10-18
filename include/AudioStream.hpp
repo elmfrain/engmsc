@@ -2,6 +2,7 @@
 #define EMAUDIO_STREAM_HPP
 
 #include "AudioEvent.hpp"
+#include "AudioFilter.hpp"
 
 #include <inttypes.h>
 #include <forward_list>
@@ -23,6 +24,30 @@
 #define EMBUFFER_POOL_SIZE 4
 #endif
 
+class EMAudioInsert
+{
+public:
+    EMAudioInsert();
+    EMAudioInsert(int id);
+
+    float getGain() const;
+    void setGain(float gain);
+
+    void addFilter(EMAudioFilter* filter);
+    bool removeFilter(EMAudioFilter* filter);
+    size_t numFilters() const;
+
+    ~EMAudioInsert();
+private:
+    int m_id;
+    float m_gain;
+
+    std::forward_list<EMAudioEvent> m_events;
+    std::vector<EMAudioFilter*> m_filters;
+
+    friend class EMAudioStream;
+};
+
 class EMAudioStream
 {
 public:
@@ -32,9 +57,14 @@ public:
     EMAudioStream(const EMAudioStream& copy) = delete;
     ~EMAudioStream();
 
-    void play(const EMAudioEvent& event);
-    void playIn(const EMAudioEvent& event, double seconds);
-    void playAt(const EMAudioEvent& event, double seconds);
+    void play(const EMAudioEvent& event, int insertIndex = 0);
+    void playIn(const EMAudioEvent& event, double seconds, int insertIndex = 0);
+    void playAt(const EMAudioEvent& event, double seconds, int insertIndex = 0);
+
+    EMAudioInsert& newInsert();
+    EMAudioInsert& getInsert(int id);
+    EMAudioInsert& getMainInsert();
+    void removeInsert(int id);
 
     const data* getNextBuffer();
     double getTime();
@@ -49,7 +79,7 @@ private:
 
     int m_nbEvents;
     
-    std::forward_list<EMAudioEvent> m_events;
+    std::vector<EMAudioInsert> m_inserts;
     std::mutex m_streamMutex;
 
     std::queue<Buffer*> m_outputQueue;
@@ -61,6 +91,8 @@ private:
 
     std::unique_ptr<data> m_buffersData;
     std::array<float, EMSAMPLES_PER_BUFFER> m_workBuffer;
+    std::array<float, EMSAMPLES_PER_BUFFER> m_insertWorkBuffer;
+    std::array<float, EMSAMPLES_PER_BUFFER> m_filterWorkBuffer;
     double m_bufferTime;
     void fillNextBuffers();
 };
