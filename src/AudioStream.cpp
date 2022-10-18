@@ -84,11 +84,7 @@ EMAudioStream::EMAudioStream() :
 
 EMAudioStream::~EMAudioStream()
 {
-    for(EMAudioInsert& insert : m_inserts)
-    for(EMAudioEvent& event : insert.m_events)
-    {
-        delete event.m_audioProducer;
-    }
+    m_inserts.clear();
 }
 
 void EMAudioStream::play(const EMAudioEvent& event, int insertIndex)
